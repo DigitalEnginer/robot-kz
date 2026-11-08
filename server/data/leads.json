@@ -1,0 +1,463 @@
+[
+  {
+    "id": "lead_1794155975252_974bc950",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T16:39:35.252Z",
+    "updatedAt": "2026-11-08T16:39:35.252Z"
+  },
+  {
+    "id": "lead_1794153977472_86b90b72",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T16:06:17.473Z",
+    "updatedAt": "2026-11-08T16:06:17.473Z"
+  },
+  {
+    "id": "lead_1794153320877_508b4634",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T15:55:20.878Z",
+    "updatedAt": "2026-11-08T15:55:20.878Z"
+  },
+  {
+    "id": "lead_1794153202112_89eca18c",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T15:53:22.112Z",
+    "updatedAt": "2026-11-08T15:53:22.112Z"
+  },
+  {
+    "id": "lead_1794153179432_492522f0",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T15:52:59.435Z",
+    "updatedAt": "2026-11-08T15:52:59.435Z"
+  },
+  {
+    "id": "lead_1794149974632_d1310169",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T14:59:34.633Z",
+    "updatedAt": "2026-11-08T14:59:34.633Z"
+  },
+  {
+    "id": "lead_1794149491202_5b8fbef4",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T14:51:31.203Z",
+    "updatedAt": "2026-11-08T14:51:31.203Z"
+  },
+  {
+    "id": "lead_1794149406311_0c2b3018",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-08T14:50:06.312Z",
+    "updatedAt": "2026-11-08T14:50:06.312Z"
+  },
+  {
+    "id": "lead_1793888562876_60797c63",
+    "name": "Бауржан Темиров",
+    "phone": "+7 (705) 987-65-43",
+    "rawPhone": "77059876543",
+    "company": "ТОО Астана Логистикс Групп",
+    "city": "Астана",
+    "robots": [
+      "PUDU T300 AMR",
+      "Unitree B2"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "25 000 000 ₸",
+    "comment": "Требуется автоматизация складского комплекса в индустриальном парке",
+    "source": "automated_test_suite",
+    "status": "Тест-драйв назначен",
+    "ip": "127.0.0.1",
+    "userAgent": "unknown",
+    "createdAt": "2026-11-05T14:22:42.876Z",
+    "updatedAt": "2026-11-05T14:22:42.910Z",
+    "managerNotes": "Тест-драйв запланирован на 10 ноября в Астане"
+  },
+  {
+    "id": "lead_1793888553406_98751e4d",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:22:33.406Z",
+    "updatedAt": "2026-11-05T14:22:33.406Z"
+  },
+  {
+    "id": "lead_1793888491301_5e6e921c",
+    "name": "Бауржан Темиров",
+    "phone": "+7 (705) 987-65-43",
+    "rawPhone": "77059876543",
+    "company": "ТОО Астана Логистикс Групп",
+    "city": "Астана",
+    "robots": [
+      "PUDU T300 AMR",
+      "Unitree B2"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "25 000 000 ₸",
+    "comment": "Требуется автоматизация складского комплекса в индустриальном парке",
+    "source": "automated_test_suite",
+    "status": "Тест-драйв назначен",
+    "ip": "127.0.0.1",
+    "userAgent": "unknown",
+    "createdAt": "2026-11-05T14:21:31.302Z",
+    "updatedAt": "2026-11-05T14:21:31.373Z",
+    "managerNotes": "Тест-драйв запланирован на 10 ноября в Астане"
+  },
+  {
+    "id": "lead_1793888489349_c4dc08de",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:21:29.350Z",
+    "updatedAt": "2026-11-05T14:21:29.350Z"
+  },
+  {
+    "id": "lead_1793888483603_80a9db09",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:21:23.604Z",
+    "updatedAt": "2026-11-05T14:21:23.604Z"
+  },
+  {
+    "id": "lead_1793888475161_978d1c5b",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:21:15.162Z",
+    "updatedAt": "2026-11-05T14:21:15.162Z"
+  },
+  {
+    "id": "lead_1793888267910_c9c6dac0",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:17:47.911Z",
+    "updatedAt": "2026-11-05T14:17:47.911Z"
+  },
+  {
+    "id": "lead_1793888206574_f8eda6da",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:16:46.575Z",
+    "updatedAt": "2026-11-05T14:16:46.575Z"
+  },
+  {
+    "id": "lead_1793888182960_55ad2d44",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:16:22.961Z",
+    "updatedAt": "2026-11-05T14:16:22.961Z"
+  },
+  {
+    "id": "lead_1793888157473_3ddad19b",
+    "name": "Айдар Касымов",
+    "phone": "+7 (701) 987-65-43",
+    "rawPhone": "77019876543",
+    "company": "ТОО РобоТех KZ",
+    "city": "Астана",
+    "robots": [
+      "Unitree Go2 Pro",
+      "PUDU CC1"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "По запросу",
+    "comment": "Тест-драйв в шоуруме Астаны",
+    "source": "qa_automated_test",
+    "status": "Новый",
+    "ip": "127.0.0.1",
+    "userAgent": "Python-urllib/3.12",
+    "createdAt": "2026-11-05T14:15:57.473Z",
+    "updatedAt": "2026-11-05T14:15:57.473Z"
+  },
+  {
+    "id": "lead_1793888155331_cbf5a8e2",
+    "name": "Бауржан Темиров",
+    "phone": "+7 (705) 987-65-43",
+    "rawPhone": "77059876543",
+    "company": "ТОО Астана Логистикс Групп",
+    "city": "Астана",
+    "robots": [
+      "PUDU T300 AMR",
+      "Unitree B2"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "25 000 000 ₸",
+    "comment": "Требуется автоматизация складского комплекса в индустриальном парке",
+    "source": "automated_test_suite",
+    "status": "Тест-драйв назначен",
+    "ip": "127.0.0.1",
+    "userAgent": "unknown",
+    "createdAt": "2026-11-05T14:15:55.331Z",
+    "updatedAt": "2026-11-05T14:15:55.365Z",
+    "managerNotes": "Тест-драйв запланирован на 10 ноября в Астане"
+  },
+  {
+    "id": "lead_1793888107989_167caed8",
+    "name": "Бауржан Темиров",
+    "phone": "+7 (705) 987-65-43",
+    "rawPhone": "77059876543",
+    "company": "ТОО Астана Логистикс Групп",
+    "city": "Астана",
+    "robots": [
+      "PUDU T300 AMR",
+      "Unitree B2"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "25 000 000 ₸",
+    "comment": "Требуется автоматизация складского комплекса в индустриальном парке",
+    "source": "automated_test_suite",
+    "status": "Тест-драйв назначен",
+    "ip": "127.0.0.1",
+    "userAgent": "unknown",
+    "createdAt": "2026-11-05T14:15:07.990Z",
+    "updatedAt": "2026-11-05T14:15:08.010Z",
+    "managerNotes": "Тест-драйв запланирован на 10 ноября в Астане"
+  },
+  {
+    "id": "lead_1730716200000_a1b2c3d4",
+    "name": "Аслан Смагулов",
+    "phone": "+7 (701) 456-78-90",
+    "company": "ТОО Mega Center Almaty",
+    "city": "Алматы",
+    "robots": [
+      "PUDU CC1 Pro"
+    ],
+    "contactMethod": "WhatsApp",
+    "budget": "6 200 000 ₸",
+    "comment": "Интересует выездная демонстрация на территории ТРЦ и расчет лизинга",
+    "source": "website_form",
+    "status": "В работе",
+    "ip": "127.0.0.1",
+    "createdAt": "2026-11-04T10:30:00.000Z",
+    "updatedAt": "2026-11-04T12:00:00.000Z"
+  },
+  {
+    "id": "lead_1730647200000_e5f6g7h8",
+    "name": "Нурлан Бейсенов",
+    "phone": "+7 (777) 321-99-88",
+    "company": "АО Караганда Инжиниринг",
+    "city": "Караганда",
+    "robots": [
+      "Unitree B2",
+      "Unitree Go2 Pro"
+    ],
+    "contactMethod": "Звонок",
+    "budget": "15 000 000 ₸",
+    "comment": "Инспекция производственного цеха, обход территории и интеграция с датчиками метана",
+    "source": "roi_calculator",
+    "status": "Тест-драйв назначен",
+    "ip": "127.0.0.1",
+    "createdAt": "2026-11-03T15:20:00.000Z",
+    "updatedAt": "2026-11-04T09:15:00.000Z"
+  }
+]

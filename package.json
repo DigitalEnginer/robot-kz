@@ -1,0 +1,24 @@
+{
+  "name": "robot-kz",
+  "version": "1.0.0",
+  "description": "XBOT Robotics Kazakhstan — Официальный дистрибьютор Unitree и PUDU",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "python tests/run_tests.py"
+  },
+  "keywords": [
+    "robotics",
+    "unitree",
+    "pudu",
+    "kazakhstan",
+    "amr",
+    "humanoid",
+    "quadruped"
+  ],
+  "author": "ТОО XBOT",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer-core": "^25.16.0"
+  }
+}
