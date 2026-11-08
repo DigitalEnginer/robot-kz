@@ -1,17 +1,35 @@
 /**
- * XBOT Robotics Kazakhstan - Client Application
- * Implements catalog filtering, native <dialog> modals, ROI calculator, 
- * cart/quote generator, mobile burger navigation, and WhatsApp business integration.
+ * ORDA ROBOTICS Kazakhstan - Client Application
+ * Implements catalog filtering, native <dialog> modals, engineering configurator, 
+ * specification/quote drawer, mobile burger navigation, and WhatsApp business integration.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // === CONFIG ===
+  const CFG = (typeof window !== 'undefined' && window.SITE_CONFIG) ? window.SITE_CONFIG : {
+    brandName: "ORDA ROBOTICS",
+    brandShort: "ORDA.KZ",
+    legalName: "ТОО «ORDA ROBOTICS»",
+    statusBadge: "ОФИЦИАЛЬНЫЙ ПОСТАВЩИК В РК",
+    phoneDisplay: "+7 (700) 000-00-00",
+    phoneRaw: "+77000000000",
+    whatsappNumber: "77000000000",
+    emailSales: "sales@orda-robotics.kz",
+    emailSupport: "support@orda-robotics.kz",
+    cityPrimary: "Алматы",
+    citiesCoverage: "Алматы, Астана и все регионы РК",
+    addressFull: "Республика Казахстан, г. Алматы (адрес шоурума уточняется)",
+    workHours: "Пн–Пт: 09:00 – 19:00"
+  };
+
   // === STATE ===
   let currentCategory = 'all';
   let currentBrand = 'all';
   let currentSearch = '';
   let currentSort = 'popular';
   
-  let cart = JSON.parse(localStorage.getItem('xbot_cart') || '[]');
+  // Storage for cart / specification
+  let cart = JSON.parse(localStorage.getItem('orda_cart') || localStorage.getItem('xbot_cart') || '[]');
 
   // Focus tracking for accessibility compliance
   let lastModalTrigger = null;
@@ -33,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartDrawer = document.getElementById('cartDrawer');
   const drawerBackdrop = document.getElementById('drawerBackdrop');
   const drawerItems = document.getElementById('drawerItems');
-  const drawerTotalPrice = document.getElementById('drawerTotalPrice');
+  const drawerTotalUnits = document.getElementById('drawerTotalUnits');
   const cartTriggers = document.querySelectorAll('.cart-trigger');
   const closeDrawerBtn = document.getElementById('closeDrawerBtn');
 
@@ -57,22 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ROI Calculator Elements
-  const roiIndustryBtns = document.querySelectorAll('.type-btn');
-  const sliderStaff = document.getElementById('sliderStaff');
-  const sliderSalary = document.getElementById('sliderSalary');
-  const staffValBadge = document.getElementById('staffValBadge');
-  const salaryValBadge = document.getElementById('salaryValBadge');
-  const roiMonthlySavings = document.getElementById('roiMonthlySavings');
-  const roiYearlySavings = document.getElementById('roiYearlySavings');
-  const roiPaybackMonths = document.getElementById('roiPaybackMonths');
-  const roiHoursSaved = document.getElementById('roiHoursSaved');
-
   // === 1. CATALOG RENDERING & FILTERING ===
   function renderCatalog() {
     if (!robotsGrid) return;
 
-    let filtered = ROBOTS_DATA.filter(r => r.catalog_visible !== false);
+    let filtered = (typeof ROBOTS_DATA !== 'undefined' ? ROBOTS_DATA : []).filter(r => r.catalog_visible !== false);
 
     // Category filter
     if (currentCategory !== 'all') {
@@ -90,15 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
       filtered = filtered.filter(item => 
         item.name.toLowerCase().includes(q) ||
         (item.desc && item.desc.toLowerCase().includes(q)) ||
-        (item.full_desc && item.full_desc.toLowerCase().includes(q))
+        (item.full_desc && item.full_desc.toLowerCase().includes(q)) ||
+        (item.config_label && item.config_label.toLowerCase().includes(q))
       );
-    }
-
-    // Sort
-    if (currentSort === 'price-asc') {
-      filtered.sort((a, b) => (a.price_kzt || 999999999) - (b.price_kzt || 999999999));
-    } else if (currentSort === 'price-desc') {
-      filtered.sort((a, b) => (b.price_kzt || 0) - (a.price_kzt || 0));
     }
 
     if (filtered.length === 0) {
@@ -119,8 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     robotsGrid.innerHTML = filtered.map(robot => {
       const specsEntries = Object.entries(robot.specs || {}).slice(0, 4);
+      const configTag = robot.config_label ? `<div class="card-config-tag" style="font-size: 0.72rem; color: var(--accent-mint); margin-top: 2px; font-weight: 600;">${robot.config_label}</div>` : '';
       return `
-        <article class="robot-card" data-slug="${robot.slug}" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Открыть подробные характеристики и видео ${robot.name}">
+        <article class="robot-card" data-slug="${robot.slug}" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Открыть подробные характеристики ${robot.name}">
           <div class="robot-card-top">
             <span class="card-badge">${robot.badge || 'Официальная поставка'}</span>
             <span class="card-brand">${robot.brand}</span>
@@ -144,18 +146,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="robot-card-bottom">
             <div class="price-block">
-              <div class="price-val">${robot.price_label}</div>
-              <div class="price-lease">${robot.lease_label}</div>
+              <div class="price-val" style="color: var(--accent-mint); font-family: var(--font-mono); font-weight: 800; font-size: 1.15rem;">${robot.price_label || 'По запросу'}</div>
+              <div class="price-lease" style="font-size: 0.74rem; color: var(--text-muted);">${robot.price_sub || 'Расчёт с НДС и доставкой по РК'}</div>
+              ${configTag}
             </div>
             <div class="card-actions">
-              <button class="btn-card-cart" data-action="add-cart" data-slug="${robot.slug}" aria-label="Добавить ${robot.name} в смету КП" title="Добавить в коммерческое предложение">
+              <button class="btn-card-cart" data-action="add-cart" data-slug="${robot.slug}" aria-label="Добавить ${robot.name} в спецификацию КП" title="Добавить в коммерческое предложение">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
                   <line x1="12" y1="18" x2="12" y2="12"></line>
                   <line x1="9" y1="15" x2="15" y2="15"></line>
                 </svg>
-                <span>+ В смету (КП)</span>
+                <span>+ В смету</span>
               </button>
             </div>
           </div>
@@ -211,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Delegate clicks on catalog cards: clicking ANYWHERE on a card opens full info!
   robotsGrid?.addEventListener('click', (e) => {
-    // 1. If clicked specifically on "+ В смету (КП)" button
+    // 1. If clicked specifically on "+ В смету" button
     const cartBtn = e.target.closest('button[data-action="add-cart"]');
     if (cartBtn) {
       e.stopPropagation();
@@ -230,7 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  
   // Filter catalog when clicking industry CTA buttons
   document.querySelectorAll('.industry-cta[data-filter-cat]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -261,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === 2. MODAL DIALOG (MODERN-WEB-GUIDANCE COMPLIANT) ===
   function openProductModal(slug, trigger = null) {
-    const robot = ROBOTS_DATA.find(r => r.slug === slug);
+    const robot = (typeof ROBOTS_DATA !== 'undefined' ? ROBOTS_DATA : []).find(r => r.slug === slug);
     if (!robot || !productDialog) return;
 
     lastModalTrigger = trigger || document.activeElement;
@@ -269,8 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeEdition = (robot.editions && robot.editions.length > 0) ? robot.editions[0] : null;
 
     function renderModalContent() {
-      const currentPriceLabel = activeEdition ? activeEdition.price_label : robot.price_label;
-      const currentLeaseLabel = activeEdition ? activeEdition.lease_label : robot.lease_label;
+      const currentPriceLabel = robot.price_label || 'По запросу';
+      const currentPriceSub = robot.price_sub || 'Расчёт с НДС и доставкой по РК';
       const currentDesc = activeEdition ? activeEdition.desc : (robot.full_desc || robot.desc || '');
       const currentSpecs = (activeEdition && activeEdition.specs) ? activeEdition.specs : (robot.specs || {});
       const currentName = activeEdition ? `${robot.name} (${activeEdition.name})` : robot.name;
@@ -297,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const accessoriesHtml = (robot.accessories && robot.accessories.length > 0) ? `
         <div class="modal-accessories-box">
-          <h4 class="modal-accessories-title">Ключевые модульные надстройки для цеха:</h4>
+          <h4 class="modal-accessories-title">Ключевые модульные надстройки и аксессуары:</h4>
           <div class="modal-accessories-grid">
             ${robot.accessories.map(acc => `
               <div class="modal-acc-card">
@@ -345,15 +347,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="font-size: 0.78rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
                   <div style="display: flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>В наличии в Алматы / Доставка 1–3 дня по Казахстану</span>
+                    <span>В наличии в Алматы / Доставка 1–3 дня по всему Казахстану</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>Официальная гарантия 12 месяцев + выездной сервис XBOT</span>
+                    <span>Официальная гарантия 12 месяцев + авторизованный сервис ${CFG.brandName}</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>Обучение операторов и инженеров заказчика с сертификатом</span>
+                    <span>Обучение операторов и инженеров заказчика с выдачей сертификата</span>
                   </div>
                 </div>
               </div>
@@ -364,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <path d="M12 16v-4"></path>
                   <path d="M12 8h.01"></path>
                 </svg>
-                <span><strong>КП (Коммерческое предложение)</strong> — официальный расчет стоимости со спецификацией, гарантией и НДС 12% для бухгалтерии или физлиц.</span>
+                <span><strong>КП (Коммерческое предложение)</strong> — официальный расчет стоимости со спецификацией, гарантией и НДС 12% для юридических и физических лиц.</span>
               </div>
             </div>
           </div>
@@ -372,10 +374,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="modal-footer">
             <div class="modal-price-box">
               <div class="m-price">${currentPriceLabel}</div>
-              <div class="m-lease">${currentLeaseLabel}</div>
+              <div class="m-lease">${currentPriceSub}</div>
             </div>
             <div class="modal-actions">
-              <a href="https://wa.me/77779117499?text=${encodeURIComponent('Здравствуйте! Интересует робот ' + currentName + '. Отправьте расчет КП и условия тест-драйва.')}" 
+              <a href="https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent('Здравствуйте! Интересует робот ' + currentName + ' от ' + CFG.brandName + '. Прошу отправить расчет КП и условия поставки.')}" 
                  target="_blank" class="btn-secondary" style="padding: 10px 18px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.983.541 1.836.828 2.801.829l.005-.001c3.182 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.765-5.778-5.765zm9.969 5.768c0 5.518-4.482 10-10 10-1.705 0-3.32-.435-4.735-1.196l-5.265 1.381 1.405-5.132c-.859-1.488-1.355-3.218-1.355-5.053 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/>
@@ -414,8 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
             slug: robot.slug,
             customId: `${robot.slug}-${activeEdition.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
             name: `${robot.name} (${activeEdition.name})`,
-            price_kzt: activeEdition.price_kzt,
-            price_label: activeEdition.price_label,
+            price_label: robot.price_label || 'По запросу',
             image: robot.image,
             badge: robot.badge
           });
@@ -441,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Light-dismiss fallback for browsers without 'closedBy' support (Modern Web Guidance)
+  // Light-dismiss fallback
   if (!('closedBy' in HTMLDialogElement.prototype) && productDialog) {
     const outside = (e, dialog) => {
       const r = dialog.getBoundingClientRect();
@@ -458,35 +459,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // === 3. CART / QUOTE DRAWER ===
+  // === 3. SPECIFICATION / QUOTE DRAWER ===
   function updateCartBadges() {
-    const count = cart.length;
-    cartCountBadges.forEach(b => b.textContent = count);
-    localStorage.setItem('xbot_cart', JSON.stringify(cart));
+    const totalUnits = cart.reduce((sum, it) => sum + (it.quantity || 1), 0);
+    cartCountBadges.forEach(b => b.textContent = totalUnits);
+    localStorage.setItem('orda_cart', JSON.stringify(cart));
   }
 
   function addToCart(slug, customItem = null) {
-    const robot = ROBOTS_DATA.find(r => r.slug === slug);
-    if (!robot) return;
+    const robot = (typeof ROBOTS_DATA !== 'undefined' ? ROBOTS_DATA : []).find(r => r.slug === slug);
+    if (!robot && !customItem) return;
     
     const itemToAdd = customItem || robot;
     const itemKey = itemToAdd.customId || itemToAdd.slug;
 
-    if (!cart.some(it => (it.customId || it.slug) === itemKey)) {
+    const existing = cart.find(it => (it.customId || it.slug) === itemKey);
+    if (existing) {
+      existing.quantity = (existing.quantity || 1) + 1;
+      showToast(`«${itemToAdd.name || robot.name}» (количество: ${existing.quantity} шт.)`);
+    } else {
       cart.push({
-        slug: robot.slug,
+        slug: robot ? robot.slug : itemToAdd.slug,
         customId: itemKey,
         name: itemToAdd.name || robot.name,
-        price_kzt: itemToAdd.price_kzt !== undefined ? itemToAdd.price_kzt : (robot.price_kzt || 0),
-        price_label: itemToAdd.price_label || robot.price_label || 'По запросу',
-        image: itemToAdd.image || robot.image || 'assets/cards/ph-go2-pro-1.webp',
-        badge: itemToAdd.badge || robot.badge || 'Официальная поставка'
+        price_label: itemToAdd.price_label || 'По запросу',
+        image: itemToAdd.image || (robot ? robot.image : 'assets/cards/ph-go2-pro-1.webp'),
+        badge: itemToAdd.badge || (robot ? robot.badge : 'Официальная поставка'),
+        quantity: 1
       });
-      updateCartBadges();
-      showToast(`«${itemToAdd.name || robot.name}» добавлена в смету!`);
-    } else {
-      showToast(`«${itemToAdd.name || robot.name}» уже в вашей смете`);
+      showToast(`«${itemToAdd.name || robot.name}» добавлена в спецификацию!`);
     }
+
+    updateCartBadges();
+    renderDrawerItems();
+  }
+
+  function changeItemQty(key, delta) {
+    const item = cart.find(it => (it.customId || it.slug) === key);
+    if (!item) return;
+
+    item.quantity = (item.quantity || 1) + delta;
+    if (item.quantity <= 0) {
+      cart = cart.filter(it => (it.customId || it.slug) !== key);
+      showToast('Позиция удалена из спецификации');
+    }
+    updateCartBadges();
     renderDrawerItems();
   }
 
@@ -494,14 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cart = cart.filter(item => (item.customId || item.slug) !== key);
     updateCartBadges();
     renderDrawerItems();
-    showToast('Модель удалена из сметы');
-  }
-
-  function removeFromCart(slug) {
-    cart = cart.filter(item => item.slug !== slug);
-    updateCartBadges();
-    renderDrawerItems();
-    showToast('Модель удалена из сметы');
+    showToast('Позиция удалена из спецификации');
   }
 
   function renderDrawerItems() {
@@ -510,25 +520,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cart.length === 0) {
       drawerItems.innerHTML = `
         <div style="text-align: center; padding: 40px 10px; color: var(--text-muted);">
-          <p>В вашей смете пока нет роботов.</p>
-          <p style="font-size: 0.84rem; margin-top: 8px;">Выберите интересующие модели в каталоге и нажмите <strong>«+ В смету (КП)»</strong>.</p>
+          <p>В вашей спецификации пока нет моделей.</p>
+          <p style="font-size: 0.84rem; margin-top: 8px;">Выберите интересующие модели в каталоге и нажмите <strong>«+ В смету»</strong>.</p>
         </div>
       `;
-      if (drawerTotalPrice) drawerTotalPrice.textContent = '0 ₸';
+      if (drawerTotalUnits) drawerTotalUnits.textContent = '0 ед.';
       return;
     }
 
-    let totalKzt = 0;
+    const totalUnits = cart.reduce((sum, it) => sum + (it.quantity || 1), 0);
+
     drawerItems.innerHTML = cart.map(item => {
-      totalKzt += (item.price_kzt || 0);
+      const key = item.customId || item.slug;
+      const qty = item.quantity || 1;
       return `
         <div class="cart-item">
           <img src="${item.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="${item.name}" />
           <div class="cart-item-info">
             <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-price">${item.price_label}</div>
+            <div class="cart-item-price" style="color: var(--accent-mint); font-weight: 700;">${item.price_label || 'По запросу'}</div>
+            
+            <div class="cart-item-qty">
+              <button type="button" class="qty-btn" data-action="minus" data-key="${key}" aria-label="Уменьшить количество">-</button>
+              <span class="qty-val">${qty} шт.</span>
+              <button type="button" class="qty-btn" data-action="plus" data-key="${key}" aria-label="Увеличить количество">+</button>
+            </div>
           </div>
-          <button class="cart-item-del" data-key="${item.customId || item.slug}" title="Удалить" aria-label="Удалить ${item.name} из КП">
+          <button class="cart-item-del" data-key="${key}" title="Удалить" aria-label="Удалить ${item.name} из спецификации">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
@@ -537,13 +555,22 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    if (drawerTotalPrice) {
-      drawerTotalPrice.textContent = totalKzt > 0 ? totalKzt.toLocaleString('ru-RU') + ' ₸' : 'Индивидуальный расчет';
+    if (drawerTotalUnits) {
+      drawerTotalUnits.textContent = `${totalUnits} ед.`;
     }
+
+    // Bind quantity buttons
+    drawerItems.querySelectorAll('.qty-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        const action = btn.dataset.action;
+        changeItemQty(key, action === 'plus' ? 1 : -1);
+      });
+    });
 
     // Bind delete buttons
     drawerItems.querySelectorAll('.cart-item-del').forEach(btn => {
-      btn.addEventListener('click', () => removeFromCart(btn.dataset.slug));
+      btn.addEventListener('click', () => removeFromCart(btn.dataset.key));
     });
   }
 
@@ -570,33 +597,16 @@ document.addEventListener('DOMContentLoaded', () => {
   closeDrawerBtn?.addEventListener('click', (e) => { e.preventDefault(); closeDrawer(); });
   drawerBackdrop?.addEventListener('click', closeDrawer);
 
-  // Focus trap for cart drawer
-  cartDrawer?.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') {
-      const focusable = cartDrawer.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-  });
-
   // Send Cart via WhatsApp
   document.getElementById('sendCartWhatsAppBtn')?.addEventListener('click', () => {
     if (cart.length === 0) {
-      showToast('Добавьте хотя бы одного робота в список!');
+      showToast('Добавьте хотя бы одну модель в спецификацию!');
       return;
     }
-    const robotNames = cart.map(c => `• ${c.name} (${c.price_label})`).join('\n');
-    const msg = `Здравствуйте, XBOT Robotics! Хочу получить официальное коммерческое предложение и счет на следующие модели:\n\n${robotNames}\n\nПрошу связаться со мной для уточнения деталей поставки по Казахстану.`;
-    window.open(`https://wa.me/77779117499?text=${encodeURIComponent(msg)}`, '_blank');
+    const robotLines = cart.map(c => `• ${c.name} — ${c.quantity || 1} шт. (${c.price_label || 'По запросу'})`).join('\n');
+    const totalUnits = cart.reduce((sum, it) => sum + (it.quantity || 1), 0);
+    const msg = `Здравствуйте, ${CFG.brandName}! Прошу подготовить официальное коммерческое предложение и счет на следующие позиции:\n\n${robotLines}\n\nВсего оборудования: ${totalUnits} ед.\nПрошу рассчитать с НДС 12% и доставкой по Казахстану.`;
+    window.open(`https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
   });
 
   // === 4. MOBILE BURGER MENU ===
@@ -614,7 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     menuToggle.classList.add('active');
     menuToggle.setAttribute('aria-expanded', 'true');
-    menuToggle.setAttribute('aria-label', 'Закрыть мобильное меню');
     setBodyLock(true);
   }
 
@@ -632,7 +641,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     menuToggle.classList.remove('active');
     menuToggle.setAttribute('aria-expanded', 'false');
-    menuToggle.setAttribute('aria-label', 'Открыть мобильное меню');
     setBodyLock(false);
   }
 
@@ -653,7 +661,6 @@ document.addEventListener('DOMContentLoaded', () => {
   closeMobileNav?.addEventListener('click', closeMobileMenu);
   mobileNavBackdrop?.addEventListener('click', closeMobileMenu);
 
-  // Close mobile navigation on click outside
   document.addEventListener('click', (e) => {
     const isMobileNavOpen = mobileNav?.classList.contains('open');
     const isMainNavOpen = mainNav?.classList.contains('open');
@@ -666,9 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const allNavLinks = document.querySelectorAll('.nav-links a, .mobile-nav-links a, .mobile-cta-btn');
   allNavLinks.forEach(link => {
     link.addEventListener('click', (e) => {
-      // Close mobile menu
       closeMobileMenu();
-
       const href = link.getAttribute('href');
       if (href && href.startsWith('#') && href.length > 1) {
         const targetSection = document.querySelector(href);
@@ -683,20 +688,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // === 5. KEYBOARD ACCESSIBILITY (ESC KEY HANDLING) ===
+  // Escape key handling
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
-      // 1. Close modal dialog if open
       if (productDialog && productDialog.open) {
         productDialog.close();
         return;
       }
-      // 2. Close cart drawer if open
       if (cartDrawer && cartDrawer.classList.contains('open')) {
         closeDrawer();
         return;
       }
-      // 3. Close mobile navigation if open
       if ((mobileNav && mobileNav.classList.contains('open')) || (mainNav && mainNav.classList.contains('open'))) {
         closeMobileMenu();
         menuToggle?.focus();
@@ -705,60 +707,273 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // === 6. INTERACTIVE ROI CALCULATOR ===
-  let currentRoiType = 'cleaning';
+  // === 5. ENGINEERING CONFIGURATOR (DYNAMIC LOGIC) ===
+  let cfgState = {
+    sphere: 'cleaning',
+    scale: 'small',
+    features: ['narrow']
+  };
 
-  function calculateROI() {
-    const staffCount = parseInt(sliderStaff?.value || '4');
-    const salary = parseInt(sliderSalary?.value || '220000');
+  const scaleOptions = {
+    cleaning: [
+      { id: 'small', label: '100 – 800 м² (компактный)' },
+      { id: 'medium', label: '800 – 5 000 м² (средний)' },
+      { id: 'large', label: 'более 5 000 м² (крупный флот)' }
+    ],
+    horeca: [
+      { id: 'small', label: 'до 200 м² (кафе / кофейня)' },
+      { id: 'medium', label: '200 – 1 000 м² (ресторан)' },
+      { id: 'large', label: 'Отель / мультиэтажный комплекс' }
+    ],
+    amr: [
+      { id: 'small', label: 'до 20 кг (детали / лотки)' },
+      { id: 'medium', label: 'до 300 кг (T300 конвейер / тележки)' },
+      { id: 'large', label: 'до 600 кг (T600 / Lifting Rack)' }
+    ],
+    rnd: [
+      { id: 'small', label: 'Базовый SDK (Go2 EDU / Python)' },
+      { id: 'medium', label: 'Промышленный IP67 (Unitree B2 / D5)' },
+      { id: 'large', label: 'Гуманоидный комплекс (Unitree G1 / R1)' }
+    ],
+    event: [
+      { id: 'small', label: 'Робособака (трюки / фотозона)' },
+      { id: 'medium', label: '18.5" Промо-экран (KettyBot Pro)' },
+      { id: 'large', label: 'Спортивный гуманоид (Unitree R1)' }
+    ]
+  };
 
-    if (staffValBadge) staffValBadge.textContent = `${staffCount} чел.`;
-    if (salaryValBadge) salaryValBadge.textContent = `${salary.toLocaleString('ru-RU')} ₸`;
+  const sphereRecommendations = {
+    'cleaning-small': {
+      name: 'PUDU ET1 (Компактный поломой)',
+      desc: 'Идеален для площадей 100–800 м². Горячая мойка 85°C и автоматическая рабочая станция 8-в-1 для автономного слива, сушки и дезинфекции.',
+      image: 'assets/cards/ph-pudu-et1-1.webp',
+      slug: 'pudu-et1',
+      spec1: 'до 800 м²/ч',
+      spec2: 'Станция 8-в-1',
+      spec3: 'Официальная гарантия 12 мес. в РК'
+    },
+    'cleaning-medium': {
+      name: 'PUDU CC1 Pro (Клининговый комбайн 4-в-1)',
+      desc: 'Флагман для торговых и бизнес-центров до 5 000 м². Одновременное мытье, подметание, скраббер и сушка пола.',
+      image: 'assets/cards/ph-pudu-cc1-1.webp',
+      slug: 'pudu-cc1',
+      spec1: '1 000 м²/ч',
+      spec2: 'до 12 000 м²/день флотом',
+      spec3: 'Поддержка авторизованного СЦ'
+    },
+    'cleaning-large': {
+      name: 'PUDU CC1 Pro + PUDU BG1',
+      desc: 'Комплексный клининговый флот для логистических терминалов и мега-моллов свыше 5 000 м² с единой системой координации.',
+      image: 'assets/cards/ph-pudu-cc1-1.webp',
+      slug: 'pudu-cc1',
+      spec1: 'до 12 000 м²/день',
+      spec2: 'Координация до 10 роботов',
+      spec3: 'СЦ ORDA ROBOTICS Алматы'
+    },
+    'horeca-small': {
+      name: 'PuduBot 2 (с защитным кейсом)',
+      desc: 'Компактная доставка до 400 заказов в день. Закрытый гигиеничный кейс Protection Case с магнитными створками.',
+      image: 'assets/cards/ph-pudubot-2-1.webp',
+      slug: 'pudubot-2',
+      spec1: 'до 400 заказов/день',
+      spec2: 'Заменяет до 5 официантов',
+      spec3: 'Нагрузка до 20 кг'
+    },
+    'horeca-medium': {
+      name: 'PUDU BellaBot Pro',
+      desc: 'Премиальный робот-официант с мимикой, мультимодальным голосовым диалогом и 4 уровнями подносов с подсветкой.',
+      image: 'assets/cards/ph-bellabot-pro-1.webp',
+      slug: 'bellabot-pro',
+      spec1: 'до 40 кг за рейс',
+      spec2: '4 независимых лотка',
+      spec3: 'Голосовое общение с гостями'
+    },
+    'horeca-large': {
+      name: 'PUDU FlashBot Max (Межэтажная доставка)',
+      desc: 'Автономная интеграция с лифтовыми контроллерами и системами отелей для круглосуточного рум-сервиса без персонала.',
+      image: 'assets/cards/ph-flashbot-1.webp',
+      slug: 'flashbot',
+      spec1: 'Интеграция с лифтами РК',
+      spec2: 'Автономный рум-сервис',
+      spec3: 'Защищенный модульный бокс'
+    },
+    'amr-small': {
+      name: 'PUDU T300 AMR (Многоярусный лоток Tray)',
+      desc: 'Автономная тележка для межоперационной доставки коробов и компонентов в цехах с узкими проходами от 80 см.',
+      image: 'assets/cards/ph-pudu-t300-1.webp',
+      slug: 'pudu-t300',
+      spec1: 'до 100 кг на ярус',
+      spec2: 'Проходы от 80 см',
+      spec3: 'Точность стыковки ±10 мм'
+    },
+    'amr-medium': {
+      name: 'PUDU T300 AMR (Роликовый конвейер)',
+      desc: 'Автоматическая стыковка с производственными конвейерами (±10 мм) для бесперебойного перемещения тары.',
+      image: 'assets/cards/ph-pudu-t300-1.webp',
+      slug: 'pudu-t300',
+      spec1: 'Грузоподъемность 300 кг',
+      spec2: 'Роликовый модуль передачи',
+      spec3: 'Интеграция с WMS/ERP'
+    },
+    'amr-large': {
+      name: 'PUDU T300 / T600 (Подъемная стойка Lifting Rack)',
+      desc: 'Тяжелый тягач с ножничным или серво-подъемником для паллет до 600 кг внутри заводских складов.',
+      image: 'assets/cards/ph-pudu-t300-1.webp',
+      slug: 'pudu-t300',
+      spec1: 'до 600 кг нагрузки',
+      spec2: 'Подъем паллет на 120 мм',
+      spec3: 'Безопасность 360° LiDAR'
+    },
+    'rnd-small': {
+      name: 'Unitree Go2 EDU (Открытая платформа ROS2)',
+      desc: 'Полный доступ к ROS2, Python и C++ API, чтение токов моторов и 4D LiDAR для лабораторий и ВУЗов Казахстана.',
+      image: 'assets/cards/ph-go2-pro-1.webp',
+      slug: 'go2-pro',
+      spec1: 'Открытый ROS2 / Python SDK',
+      spec2: '4D-LiDAR 360°x90°',
+      spec3: 'Высокоскоростная шина данных'
+    },
+    'rnd-medium': {
+      name: 'Unitree B2 / PUDU D5 (Промышленный класс IP67)',
+      desc: 'Работа при -20°C...+55°C, защита IP67, автономность до 5 часов и преодоление уклонов до 45° для патрулирования промзон.',
+      image: 'assets/cards/ph-b2-1.webp',
+      slug: 'unitree-b2',
+      spec1: 'Защита IP67 / уклоны 45°',
+      spec2: 'Нагрузка до 40–50 кг',
+      spec3: 'Автономность до 5 часов'
+    },
+    'rnd-large': {
+      name: 'Unitree G1 Humanoid (Робот-гуманоид 43 DoF)',
+      desc: 'Антропоморфная платформа ростом 127 см с манипуляторами Dex3-1, GPT-интеллектом и передовой динамической стабилизацией.',
+      image: 'assets/cards/u-g1.webp',
+      slug: 'unitree-g1',
+      spec1: 'Рост 127 см / вес 35 кг',
+      spec2: 'до 43 степеней свободы',
+      spec3: 'Манипуляторы Dex3-1'
+    },
+    'event-small': {
+      name: 'Unitree Go2 Pro (Шоу и фотозона)',
+      desc: 'Синхронные сальто, танцы, интерактивный голосовой диалог с гостями и максимальное внимание прессы на выставках.',
+      image: 'assets/cards/ph-go2-pro-1.webp',
+      slug: 'go2-pro',
+      spec1: 'Скорость до 3.7 м/с',
+      spec2: 'GPT диалог с гостями',
+      spec3: 'Аренда с оператором в РК'
+    },
+    'event-medium': {
+      name: 'PUDU KettyBot Pro (18.5" HD Промо-экран)',
+      desc: 'Робот-промоутер для трансляции ваших видеороликов, навигации по стенду форума и раздачи welcome-дринков.',
+      image: 'assets/cards/ph-kettybot-1.webp',
+      slug: 'kettybot-pro',
+      spec1: '18.5" вертикальный HD экран',
+      spec2: 'Круизный обход зала',
+      spec3: 'До 8 часов работы'
+    },
+    'event-large': {
+      name: 'Unitree R1 (Спортивный гуманоид)',
+      desc: 'Сверхлегкий атлетичный гуманоид весом 25–29 кг с 20–26 степенями свободы для акробатики, бега и WOW-презентаций.',
+      image: 'assets/cards/u-g1.webp',
+      slug: 'unitree-r1',
+      spec1: 'Вес всего 25–29 кг',
+      spec2: '20–26 степеней свободы',
+      spec3: 'Стойка на руках и акробатика'
+    }
+  };
 
-    // Monthly staff cost (salary + taxes ~20%)
-    const monthlyStaffCost = staffCount * salary * 1.2;
-    
-    // Robot maintenance & electricity estimate
-    const robotMonthlyOpex = staffCount * 25000;
-    
-    // Monthly savings (robots replace ~70% manual routine labor)
-    const monthlySavings = Math.round((monthlyStaffCost * 0.7) - robotMonthlyOpex);
-    const yearlySavings = monthlySavings * 12;
+  function updateConfiguratorRecommendation() {
+    const key = `${cfgState.sphere}-${cfgState.scale}`;
+    const rec = sphereRecommendations[key] || sphereRecommendations[`${cfgState.sphere}-small`] || sphereRecommendations['cleaning-small'];
 
-    // Approximate investment for robots based on staff
-    let robotUnitCost = 6200000; // default CC1
-    if (currentRoiType === 'delivery') robotUnitCost = 4200000; // BellaBot
-    if (currentRoiType === 'warehouse') robotUnitCost = 8900000; // T300
+    const titleEl = document.getElementById('cfgResultTitle');
+    const descEl = document.getElementById('cfgResultDesc');
+    const imgEl = document.getElementById('cfgResultImg');
+    const spec1El = document.getElementById('cfgResultSpec1');
+    const spec2El = document.getElementById('cfgResultSpec2');
+    const spec3El = document.getElementById('cfgResultSpec3');
+    const waBtn = document.getElementById('cfgWhatsAppBtn');
+    const addBtn = document.getElementById('cfgAddSpecBtn');
 
-    const totalInvestment = Math.max(1, Math.round(staffCount * 0.5)) * robotUnitCost;
-    const paybackMonths = Math.max(2.5, +(totalInvestment / Math.max(monthlySavings, 1)).toFixed(1));
+    if (titleEl) titleEl.textContent = rec.name;
+    if (descEl) descEl.textContent = rec.desc;
+    if (imgEl) {
+      imgEl.src = rec.image;
+      imgEl.alt = rec.name;
+    }
+    if (spec1El) spec1El.textContent = rec.spec1;
+    if (spec2El) spec2El.textContent = rec.spec2;
+    if (spec3El) spec3El.textContent = rec.spec3;
 
-    if (roiMonthlySavings) roiMonthlySavings.textContent = `${monthlySavings.toLocaleString('ru-RU')} ₸`;
-    if (roiYearlySavings) roiYearlySavings.textContent = `${yearlySavings.toLocaleString('ru-RU')} ₸`;
-    if (roiPaybackMonths) roiPaybackMonths.textContent = `${paybackMonths} мес.`;
-    if (roiHoursSaved) roiHoursSaved.textContent = `${staffCount * 140} ч/мес`;
+    if (waBtn) {
+      const msg = `Здравствуйте, ${CFG.brandName}! Я подобрал решение в инженерном конфигураторе на сайте:\n• Рекомендация: ${rec.name}\n• Сфера: ${cfgState.sphere}\n• Масштаб/нагрузка: ${cfgState.scale}\n• Особенности: ${cfgState.features.join(', ')}\n\nПрошу отправить технико-экономическое обоснование (ТЭО) и официальное КП с НДС 12%.`;
+      waBtn.href = `https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+    }
+
+    if (addBtn) {
+      addBtn.onclick = () => {
+        addToCart(rec.slug);
+      };
+    }
   }
 
-  sliderStaff?.addEventListener('input', calculateROI);
-  sliderSalary?.addEventListener('input', calculateROI);
+  function renderScaleOptions() {
+    const scaleGroup = document.getElementById('cfgScaleGroup');
+    if (!scaleGroup) return;
 
-  roiIndustryBtns.forEach(btn => {
+    const opts = scaleOptions[cfgState.sphere] || scaleOptions.cleaning;
+    scaleGroup.innerHTML = opts.map((opt, i) => `
+      <button type="button" class="cfg-tag-btn ${opt.id === cfgState.scale ? 'active' : ''}" data-scale="${opt.id}">
+        ${opt.label}
+      </button>
+    `).join('');
+
+    scaleGroup.querySelectorAll('.cfg-tag-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        scaleGroup.querySelectorAll('.cfg-tag-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        cfgState.scale = btn.dataset.scale;
+        updateConfiguratorRecommendation();
+      });
+    });
+  }
+
+  // Step 1: Sphere Click
+  document.querySelectorAll('#cfgSphereGroup .cfg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      roiIndustryBtns.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#cfgSphereGroup .cfg-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      currentRoiType = btn.dataset.type;
-      calculateROI();
+      cfgState.sphere = btn.dataset.sphere;
+      cfgState.scale = 'small'; // reset to first
+      renderScaleOptions();
+      updateConfiguratorRecommendation();
     });
   });
 
-  // === 7. HERO VISUAL TABS SWITCHER ===
+  // Step 3: Features Click (multi-select)
+  document.querySelectorAll('#cfgFeatureGroup .cfg-feat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      const feat = btn.dataset.feature;
+      if (btn.classList.contains('active')) {
+        if (!cfgState.features.includes(feat)) cfgState.features.push(feat);
+      } else {
+        cfgState.features = cfgState.features.filter(f => f !== feat);
+      }
+      updateConfiguratorRecommendation();
+    });
+  });
+
+  // Initial configurator setup
+  renderScaleOptions();
+  updateConfiguratorRecommendation();
+
+  // === 6. HERO VISUAL TABS SWITCHER (AUTHENTIC B2B STATUS) ===
   const heroRobots = [
     {
       name: 'Unitree Go2 Pro',
       badge: 'Хит продаж в Казахстане',
       desc: 'Четвероногий робот с 4D-лидаром, GPT-интеллектом и максимальной проходимостью',
-      price: '1 450 000 ₸',
-      lease: 'от 72 000 ₸/мес в лизинг',
+      price: 'По запросу (КП за 15 мин)',
+      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
       img: 'assets/cards/ph-go2-pro-1.webp',
       slug: 'go2-pro'
     },
@@ -766,8 +981,8 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'Unitree G1 Humanoid',
       badge: 'Новинка 2026',
       desc: 'Антропоморфный робот-гуманоид массового производства, до 43 степеней свободы',
-      price: '7 900 000 ₸',
-      lease: 'от 395 000 ₸/мес в лизинг',
+      price: 'По запросу (КП за 15 мин)',
+      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
       img: 'assets/cards/u-g1.webp',
       slug: 'unitree-g1'
     },
@@ -775,8 +990,8 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'PUDU CC1 Pro',
       badge: 'В наличии в Алматы',
       desc: 'Автономный клининговый комбайн 4-в-1 для торговых центров и складов до 12 000 м²',
-      price: '6 200 000 ₸',
-      lease: 'от 310 000 ₸/мес в лизинг',
+      price: 'По запросу (КП за 15 мин)',
+      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
       img: 'assets/cards/ph-pudu-cc1-1.webp',
       slug: 'pudu-cc1'
     },
@@ -784,8 +999,8 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'PUDU T300 AMR',
       badge: 'Для цехов и заводов',
       desc: 'Промышленная автономная платформа 300 кг для сопряжения с конвейерами цеха',
-      price: '8 900 000 ₸',
-      lease: 'от 445 000 ₸/мес в лизинг',
+      price: 'По запросу (КП за 15 мин)',
+      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
       img: 'assets/cards/ph-pudu-t300-1.webp',
       slug: 'pudu-t300'
     }
@@ -826,12 +1041,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Default bind for hero details btn
   if (heroCardDetailsBtn) {
     heroCardDetailsBtn.onclick = (e) => openProductModal('go2-pro', e.currentTarget);
   }
 
-  // === 8. LEAD FORM SUBMISSION (WITH BACKEND API & WHATSAPP FALLBACK) ===
+  // === 7. LEAD FORM SUBMISSION (ORDA ROBOTICS INTEGRATION) ===
   const leadForm = document.getElementById('leadForm');
   leadForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -839,20 +1053,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('leadName')?.value.trim() || '';
     const company = document.getElementById('leadCompany')?.value.trim() || '';
     const phone = document.getElementById('leadPhone')?.value.trim() || '';
-    const city = document.getElementById('leadCity')?.value || 'Алматы';
+    const city = document.getElementById('leadCity')?.value || CFG.cityPrimary;
     const robot = document.getElementById('leadRobot')?.value || 'Не выбрано';
     const messenger = document.querySelector('input[name="messenger"]:checked')?.value || 'WhatsApp';
 
-    // Construct full lead text message
-    let text = `Заявка с сайта XBOT Robotics:\nИмя: ${name}`;
+    let text = `Заявка с сайта ${CFG.brandName} (${CFG.brandShort}):\nИмя: ${name}`;
     if (company) text += `\nКомпания: ${company}`;
-    text += `\nТелефон: ${phone}\nГород: ${city}\nИнтересует: ${robot}\nУдобная связь: ${messenger}`;
+    text += `\nТелефон: ${phone}\nГород поставки: ${city}\nИнтересует: ${robot}\nУдобная связь: ${messenger}`;
 
     if (cart.length > 0) {
-      text += `\n\nВыбранные модели в КП:\n` + cart.map(c => `• ${c.name} (${c.price_label})`).join('\n');
+      text += `\n\nВыбранные модели в спецификации:\n` + cart.map(c => `• ${c.name} — ${c.quantity || 1} шт. (${c.price_label || 'По запросу'})`).join('\n');
     }
 
-    const whatsappUrl = `https://wa.me/77779117499?text=${encodeURIComponent(text)}`;
+    const whatsappUrl = `https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(text)}`;
 
     const submitBtn = leadForm.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn ? submitBtn.textContent : '';
@@ -868,14 +1081,13 @@ document.addEventListener('DOMContentLoaded', () => {
       city,
       robot,
       messenger,
-      cart: cart.map(item => ({ slug: item.slug, name: item.name, price: item.price_label })),
+      cart: cart.map(item => ({ slug: item.slug, name: item.name, quantity: item.quantity || 1, price: item.price_label })),
       sourceUrl: window.location.href,
       createdAt: new Date().toISOString()
     };
 
-    // 1. Graceful offline fallback for local file:// protocol (prevents browser console network errors)
     if (window.location.protocol === 'file:') {
-      showToast('Заявка принята! Перенаправляем в WhatsApp...');
+      showToast('Заявка сформирована! Перенаправляем в WhatsApp...');
       leadForm.reset();
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -885,7 +1097,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. HTTP/HTTPS environment: attempt POST /api/leads
     let isSuccess = false;
     try {
       const response = await fetch('/api/leads', {
@@ -896,12 +1107,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify(leadPayload)
       });
-
-      if (response.ok) {
-        isSuccess = true;
-      }
+      if (response.ok) isSuccess = true;
     } catch (_err) {
-      // Backend is unavailable or network error - graceful silent fallback
       isSuccess = false;
     } finally {
       if (submitBtn) {
@@ -912,19 +1119,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isSuccess) {
       showToast('Заявка зафиксирована в CRM! Открываем WhatsApp...');
-      leadForm.reset();
-      setTimeout(() => {
-        window.open(whatsappUrl, '_blank');
-      }, 500);
     } else {
-      // Server offline / unreachable: immediate fallback without error
-      showToast('Сервер оффлайн: перенаправляем в WhatsApp с полным текстом заявки...');
-      leadForm.reset();
-      window.open(whatsappUrl, '_blank');
+      showToast('Открываем WhatsApp с заполненной заявкой...');
     }
+    leadForm.reset();
+    setTimeout(() => {
+      window.open(whatsappUrl, '_blank');
+    }, 400);
   });
 
-  // === 9. TOAST NOTIFICATIONS HELPER ===
+  // === 8. TOAST NOTIFICATIONS HELPER ===
   const toastContainer = document.getElementById('toastContainer');
   function showToast(message) {
     if (!toastContainer) return;
@@ -945,7 +1149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  // === 10. INITIALIZE ===
+  // === 9. INITIALIZE ===
   function updateSearchPlaceholder() {
     if (!searchInput) return;
     if (window.innerWidth < 640) {
@@ -959,5 +1163,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateCartBadges();
   renderCatalog();
-  calculateROI();
 });

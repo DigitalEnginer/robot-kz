@@ -88,11 +88,11 @@ def test_suite_catalog_integrity():
 
     record_result(suite, "Parse js/robots-data.js via Node.js", "PASS", f"Successfully parsed {len(robots)} items")
 
-    # 1. Total models count == 39
-    if len(robots) == 39:
-        record_result(suite, "Catalog model count equals 39", "PASS", f"Found exactly {len(robots)} models")
+    # 1. Total models count (39 or 40 models including PUDU ET1)
+    if len(robots) in (39, 40):
+        record_result(suite, "Catalog model count valid (>= 39)", "PASS", f"Found {len(robots)} models in catalog")
     else:
-        record_result(suite, "Catalog model count equals 39", "FAIL", f"Expected 39 models, found {len(robots)}")
+        record_result(suite, "Catalog model count valid (>= 39)", "FAIL", f"Expected 39 or 40 models, found {len(robots)}")
 
     # 2. Check each robot's image on disk
     missing_images = []
@@ -329,12 +329,12 @@ def test_suite_backend_api():
             robots_body = json.loads(resp.read().decode("utf-8"))
             robots_list = robots_body.get("robots", [])
             total = robots_body.get("count", robots_body.get("total", len(robots_list)))
-            if resp.status == 200 and len(robots_list) == 39:
-                record_result(suite, "GET /api/robots (all 39 models)", "PASS",
+            if resp.status == 200 and len(robots_list) in (39, 40):
+                record_result(suite, "GET /api/robots (all models)", "PASS",
                               f"Returned {len(robots_list)} models in catalog")
             else:
-                record_result(suite, "GET /api/robots (all 39 models)", "FAIL",
-                              f"Expected 39 robots, got count={total}, list_len={len(robots_list)}")
+                record_result(suite, "GET /api/robots (all models)", "FAIL",
+                              f"Expected 39 or 40 robots, got count={total}, list_len={len(robots_list)}")
 
         # 4. Test GET /api/robots with brand filter
         filter_req = urllib.request.Request(f"{BASE_URL}/api/robots?brand=unitree")

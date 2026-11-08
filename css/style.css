@@ -962,6 +962,7 @@ button, input, select, textarea {
   min-height: 96px;
   height: auto;
   align-content: start;
+  overflow: visible;
   transition: border-color 0.25s ease, background 0.25s ease;
 }
 
@@ -975,6 +976,7 @@ button, input, select, textarea {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 .spec-mini-lbl {
@@ -985,7 +987,7 @@ button, input, select, textarea {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: block;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .spec-mini-val {
@@ -993,8 +995,11 @@ button, input, select, textarea {
   font-weight: 600;
   color: #ffffff;
   font-size: 0.86rem;
-  line-height: 1.35;
+  line-height: 1.45;
+  min-height: 1.45em;
+  padding-bottom: 2px;
   word-break: break-word;
+  overflow: visible;
 }
 
 .card-click-hint {
@@ -2563,3 +2568,304 @@ dialog::backdrop {
   color: var(--text-muted);
   line-height: 1.35;
 }
+
+/* === ENGINEERING CONFIGURATOR STYLES === */
+.configurator-wrapper {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 28px;
+  margin-top: 36px;
+  align-items: stretch;
+}
+
+.config-steps-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cfg-step-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.cfg-step-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.96rem;
+  color: #fff;
+  margin-bottom: 14px;
+}
+
+.cfg-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-mint);
+  color: #050b08;
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cfg-pills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.cfg-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+
+.cfg-btn:hover {
+  border-color: rgba(75, 227, 160, 0.35);
+  color: #fff;
+  background: rgba(75, 227, 160, 0.05);
+}
+
+.cfg-btn.active {
+  border-color: var(--accent-mint);
+  background: rgba(75, 227, 160, 0.12);
+  color: var(--accent-mint);
+  font-weight: 700;
+  box-shadow: 0 0 15px rgba(75, 227, 160, 0.1);
+}
+
+.cfg-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cfg-tag-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  padding: 9px 18px;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cfg-tag-btn:hover {
+  border-color: rgba(75, 227, 160, 0.3);
+  color: #fff;
+}
+
+.cfg-tag-btn.active {
+  border-color: var(--accent-mint);
+  background: var(--accent-mint);
+  color: #050b08;
+  font-weight: 700;
+  box-shadow: 0 2px 10px var(--accent-mint-glow);
+}
+
+.cfg-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.cfg-feat-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cfg-feat-btn:hover {
+  border-color: rgba(75, 227, 160, 0.3);
+  color: #fff;
+}
+
+.cfg-feat-btn.active {
+  border-color: var(--accent-mint);
+  background: rgba(75, 227, 160, 0.1);
+  color: var(--accent-mint);
+  font-weight: 700;
+}
+
+/* Result Recommendation Box */
+.config-result-card {
+  background: linear-gradient(145deg, rgba(16, 21, 26, 0.98), rgba(11, 15, 18, 0.98));
+  border: 1px solid rgba(75, 227, 160, 0.35);
+  border-radius: var(--radius-md);
+  padding: 30px 26px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(75, 227, 160, 0.08);
+}
+
+.cfg-result-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(75, 227, 160, 0.15);
+  color: var(--accent-mint);
+  border: 1px solid rgba(75, 227, 160, 0.3);
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+
+.cfg-result-img-box {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.cfg-result-img-box img {
+  max-width: 100%;
+  max-height: 170px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.cfg-result-info h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.cfg-result-info p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.cfg-result-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 12px 14px;
+  background: rgba(8, 10, 12, 0.7);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cfg-spec-pill {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.cfg-spec-k {
+  color: var(--text-muted);
+}
+
+.cfg-spec-v {
+  color: #fff;
+  font-weight: 700;
+}
+
+.cfg-result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* === DRAWER QUANTITY CONTROLS === */
+.cart-item-qty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.qty-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.qty-btn:hover {
+  background: var(--accent-mint);
+  color: #050b08;
+  border-color: var(--accent-mint);
+}
+
+.qty-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--accent-mint);
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Rent Price Details */
+.rent-price-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rent-price-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Configurator Mobile Responsiveness */
+@media (max-width: 900px) {
+  .configurator-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+

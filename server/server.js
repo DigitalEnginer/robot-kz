@@ -1,13 +1,13 @@
 /**
  * ==============================================================================
- * XBOT Robotics Kazakhstan — Core Production Server
+ * ORDA ROBOTICS Kazakhstan — Core Production Server
  * ==============================================================================
  * High-performance, zero-external-dependency Node.js backend.
  * Provides REST API for lead capture, catalog distribution, CRM management,
  * WhatsApp messaging bridge, and static frontend file serving.
  * 
  * Target: Kazakhstan B2B Robotics Market (Unitree & PUDU)
- * Official Distributor: ТОО "XBOT"
+ * Official Supplier: ТОО "ORDA ROBOTICS" (ORDA.KZ)
  * License: Proprietary
  * ==============================================================================
  */
@@ -20,6 +20,19 @@ const url = require('url');
 const crypto = require('crypto');
 const os = require('os');
 
+let SITE_CONFIG = null;
+try {
+  SITE_CONFIG = require('../config/site.js');
+} catch (_e) {
+  SITE_CONFIG = {
+    brandName: "ORDA ROBOTICS",
+    brandShort: "ORDA.KZ",
+    whatsappNumber: "77000000000",
+    phoneDisplay: "+7 (700) 000-00-00",
+    emailSales: "sales@orda-robotics.kz"
+  };
+}
+
 // === CONFIGURATION ===
 let PORT = parseInt(process.env.PORT || '3000', 10);
 const portArgIndex = process.argv.indexOf('--port');
@@ -28,10 +41,10 @@ if (portArgIndex !== -1 && process.argv[portArgIndex + 1]) {
 }
 
 const HOST = process.env.HOST || '0.0.0.0';
-const DEFAULT_MANAGER_PHONE = process.env.MANAGER_WHATSAPP || '77779117499';
+const DEFAULT_MANAGER_PHONE = process.env.MANAGER_WHATSAPP || SITE_CONFIG.whatsappNumber || '77000000000';
 const ROOT_DIR = path.resolve(__dirname, '..');
 const ROOT_DATA_DIR = process.env.VERCEL 
-  ? path.join(os.tmpdir(), 'xbot-data') 
+  ? path.join(os.tmpdir(), 'orda-data') 
   : path.resolve(ROOT_DIR, 'data');
 const ROOT_LEADS_FILE = path.join(ROOT_DATA_DIR, 'leads.json');
 const SERVER_DATA_DIR = ROOT_DATA_DIR;
@@ -223,7 +236,7 @@ function formatWhatsAppLeadMessage(lead) {
     : (lead.robots ? `  • ${lead.robots}` : (lead.robot ? `  • ${lead.robot}` : '  • Не выбрано'));
 
   const lines = [
-    '*НОВАЯ ЗАЯВКА: XBOT ROBOTICS KZ*',
+    `*НОВАЯ ЗАЯВКА: ${SITE_CONFIG.brandName} (${SITE_CONFIG.brandShort})*`,
     '────────────────────────',
     `*Клиент:* ${lead.name || 'Не указано'}`,
     `*Телефон:* ${lead.phone || 'Не указано'}`,
@@ -422,7 +435,7 @@ async function handleRequest(req, res) {
 
       sendJSON(res, 200, {
         status: 'ok',
-        service: 'XBOT Robotics Kazakhstan API',
+        service: `${SITE_CONFIG.brandName} (${SITE_CONFIG.brandShort}) Kazakhstan API`,
         version: '1.0.0',
         uptime: +(process.uptime()).toFixed(2),
         uptimeSeconds: Math.round((Date.now() - START_TIME) / 1000),
@@ -543,7 +556,7 @@ async function handleRequest(req, res) {
 
       sendJSON(res, 201, {
         success: true,
-        message: 'Заявка успешно зарегистрирована в системе XBOT',
+        message: `Заявка успешно зарегистрирована в системе ${SITE_CONFIG.brandName}`,
         lead: newLead,
         whatsapp: {
           managerPhone: DEFAULT_MANAGER_PHONE,
@@ -705,7 +718,7 @@ if (require.main === module) {
     }
 
     console.log('============================================================');
-    console.log(`[XBOT] Robotics Kazakhstan Server is running!`);
+    console.log(`[ORDA] Robotics Kazakhstan Server is running!`);
     console.log(`[URL] Localhost:   http://localhost:${PORT}`);
     localIps.forEach(ip => {
       console.log(`[NET] С телефона (Wi-Fi): http://${ip}:${PORT}`);
