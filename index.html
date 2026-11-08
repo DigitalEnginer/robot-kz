@@ -40,7 +40,7 @@
 
       <nav class="nav-links" id="mainNav" aria-label="Основное меню">
         <a href="#catalog" class="active">Каталог</a>
-        <a href="#factory">Для Цеха и Склада</a>
+        <a href="#industries">Отрасли и Кейсы</a>
         <a href="#calculator">Окупаемость (ROI)</a>
         <a href="#rent">Аренда</a>
         <a href="#about">О компании</a>
@@ -99,8 +99,8 @@
           <span>Каталог роботов</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
         </a>
-        <a href="#factory" class="mobile-nav-link">
-          <span>Для Цеха и Склада</span>
+        <a href="#industries" class="mobile-nav-link">
+          <span>Отрасли и Кейсы</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
         </a>
         <a href="#calculator" class="mobile-nav-link">
@@ -237,20 +237,15 @@
 
         <div class="catalog-toolbar">
           <div class="toolbar-top">
-            <div class="category-pills" role="tablist">
-              <button class="pill-btn active" data-category="all">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 8V4H8"></path>
-                  <rect width="16" height="12" x="4" y="8" rx="2"></rect>
-                  <path d="M2 14h2"></path>
-                  <path d="M20 14h2"></path>
-                  <path d="M15 13v2"></path>
-                  <path d="M9 13v2"></path>
+            <div class="category-pills" role="tablist" aria-label="Категории роботов">
+              <button class="pill-btn active" data-category="all" role="tab" aria-selected="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
                 <span>Все роботы</span>
               </button>
-              <button class="pill-btn" data-category="quadruped">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <button class="pill-btn" data-category="quadruped" role="tab" aria-selected="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 11h9l3.5-3.5h3.5v3l-2.5 2H13"></path>
                   <circle cx="17.5" cy="9.5" r="0.8" fill="currentColor"></circle>
                   <path d="M5.5 11l-2 4.5 2 4.5"></path>
@@ -260,58 +255,40 @@
                 </svg>
                 <span>Робособаки</span>
               </button>
-              <button class="pill-btn" data-category="humanoid">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2l0-4"></path>
-                  <path d="M12 2v2"></path>
-                  <path d="M9 12v9"></path>
-                  <path d="M15 12v9"></path>
-                  <path d="M5 16l4-2"></path>
-                  <path d="M15 14l4 2"></path>
-                  <path d="M9 18h6"></path>
-                  <circle cx="10" cy="8" r="0.8" fill="currentColor"></circle>
-                  <circle cx="14" cy="8" r="0.8" fill="currentColor"></circle>
+              <button class="pill-btn" data-category="humanoid" role="tab" aria-selected="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="5" r="2"></circle>
+                  <path d="M12 7v10"></path>
+                  <path d="M8 10h8"></path>
+                  <path d="M9 21l3-4 3 4"></path>
                 </svg>
                 <span>Гуманоиды</span>
               </button>
-              <button class="pill-btn" data-category="cleaning">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="9"></circle>
-                  <circle cx="12" cy="12" r="3.2"></circle>
-                  <circle cx="12" cy="12" r="1" fill="currentColor"></circle>
-                  <path d="M12 3v2"></path>
-                  <path d="M8 5l1 1.5"></path>
-                  <path d="M16 5l-1 1.5"></path>
-                  <path d="M3 12h2"></path>
-                  <path d="M19 12h2"></path>
+              <button class="pill-btn" data-category="cleaning" role="tab" aria-selected="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
                 </svg>
                 <span>Клининг</span>
               </button>
-              <button class="pill-btn" data-category="delivery">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 14h16"></path>
-                  <path d="M20 14a8 8 0 0 0-16 0"></path>
-                  <path d="M12 6V4"></path>
-                  <circle cx="12" cy="3.5" r="1" fill="currentColor"></circle>
-                  <rect x="5" y="16" width="14" height="4" rx="2"></rect>
-                  <circle cx="8" cy="18" r="1" fill="currentColor"></circle>
-                  <circle cx="16" cy="18" r="1" fill="currentColor"></circle>
+              <button class="pill-btn" data-category="delivery" role="tab" aria-selected="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 18h18"></path>
+                  <path d="M4 18a8 8 0 0 1 16 0"></path>
+                  <path d="M12 4v6"></path>
+                  <circle cx="12" cy="4" r="1.5" fill="currentColor"></circle>
                 </svg>
                 <span>Доставка & HoReCa</span>
               </button>
-              <button class="pill-btn" data-category="industrial">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="6" y="4" width="12" height="9" rx="1.5"></rect>
-                  <path d="M9 8.5h6"></path>
-                  <rect x="3" y="15" width="18" height="4" rx="2"></rect>
-                  <circle cx="7" cy="19" r="1.5"></circle>
-                  <circle cx="17" cy="19" r="1.5"></circle>
-                  <circle cx="12" cy="15" r="1" fill="currentColor"></circle>
+              <button class="pill-btn" data-category="industrial" role="tab" aria-selected="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 20h20"></path>
+                  <path d="M5 20V8l5 4V8l5 4V4h4v16"></path>
+                  <rect x="7" y="15" width="3" height="5"></rect>
                 </svg>
                 <span>Цех & Склад (AMR)</span>
               </button>
-              <button class="pill-btn" data-category="components">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <button class="pill-btn" data-category="components" role="tab" aria-selected="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 21h8"></path>
                   <path d="M8 21v-3"></path>
                   <circle cx="8" cy="16" r="2"></circle>
@@ -324,32 +301,6 @@
               </button>
             </div>
           </div>
-
-          <div class="toolbar-bottom">
-            <div class="search-box">
-              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.3-4.3"></path>
-              </svg>
-              <input type="search" id="searchInput" placeholder="Поиск по названию или параметрам..." aria-label="Поиск по каталогу" />
-            </div>
-
-            <div class="brand-filters">
-              <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Бренд:</span>
-              <button class="brand-btn active" data-brand="all">Все</button>
-              <button class="brand-btn" data-brand="Unitree">Unitree</button>
-              <button class="brand-btn" data-brand="PUDU">PUDU</button>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Сортировка:</span>
-              <select id="sortSelect" class="sort-select" aria-label="Сортировка моделей">
-                <option value="popular">По популярности</option>
-                <option value="price-asc">Сначала доступные</option>
-                <option value="price-desc">Сначала премиум</option>
-              </select>
-            </div>
-          </div>
         </div>
 
         <div class="robots-grid" id="robotsGrid">
@@ -358,113 +309,213 @@
       </div>
     </section>
 
-    <!-- FACTORY & WAREHOUSE SOLUTIONS SECTION (PUDU ДЛЯ ЦЕХА) -->
-    <section class="factory-section" id="factory">
+    <!-- INDUSTRIES & CASE STUDIES (ВНЕДРЕНИЯ И СФЕРЫ ПРИМЕНЕНИЯ) -->
+    <section class="industries-section" id="industries">
       <div class="container">
         <div class="section-header">
-          <span class="section-tag">Промышленная автоматизация</span>
-          <h2 class="section-title">Комплексные решения для Цеха и Склада</h2>
+          <span class="section-tag">Отраслевой опыт в Казахстане</span>
+          <h2 class="section-title">Внедрения и сферы применения</h2>
           <p class="section-desc">
-            Автономные мобильные роботы (AMR) и клининговые комбайны для фабрик, логистических хабов и заводов Казахстана.
+            Проверенные сценарии роботизации бизнеса, производств и сферы услуг с реальными расчетами окупаемости и поддержкой сервисного центра в Алматы.
           </p>
         </div>
 
-        <div class="factory-hero-banner">
-          <div class="factory-banner-text">
-            <span class="card-badge" style="margin-bottom: 12px; display: inline-block;">Флагман промышленной логистики</span>
-            <h3>PUDU T300 / T600 AMR Платформы</h3>
-            <p>
-              Предназначены для автономной транспортировки паллет, коробов и деталей в узких проходах (от 80 см). Полная интеграция с ERP и WMS системами предприятия без перестройки существующего цеха.
+        <div class="industries-grid">
+          <!-- 1. HoReCa & Рестораны -->
+          <article class="industry-card">
+            <div class="industry-card-header">
+              <div class="industry-icon-wrap" style="color: #ffb703; background: rgba(255, 183, 3, 0.1);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 18h18"></path>
+                  <path d="M4 18a8 8 0 0 1 16 0"></path>
+                  <path d="M12 4v6"></path>
+                  <circle cx="12" cy="4" r="1.5" fill="currentColor"></circle>
+                </svg>
+              </div>
+              <span class="industry-badge">HoReCa & Ритейл</span>
+            </div>
+            <h3 class="industry-title">Рестораны, Кафе и Отели</h3>
+            <p class="industry-desc">
+              Автономная доставка блюд до 4 столиков одновременно, встреча и рассадка гостей, WOW-эффект и рост среднего чека заведения. Разгрузка официантов от переноски сотен килограммов подносов в смену.
             </p>
-
-            <div class="factory-banner-features">
-              <div class="f-feature-item">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"></path></svg>
-                <div>
-                  <h4>Грузоподъемность 300 / 600 кг</h4>
-                  <p>Тяжелые промышленные нагрузки и паллеты</p>
-                </div>
+            <div class="industry-stats">
+              <div class="stat-pill">
+                <span class="stat-val">+35%</span>
+                <span class="stat-lbl">скорость подачи</span>
               </div>
-              <div class="f-feature-item">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"></path></svg>
-                <div>
-                  <h4>Точность стыковки ±10 мм</h4>
-                  <p>Бесшовная передача грузов на конвейерные линии</p>
-                </div>
+              <div class="stat-pill">
+                <span class="stat-val">от 7 мес.</span>
+                <span class="stat-lbl">окупаемость</span>
               </div>
-              <div class="f-feature-item">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"></path></svg>
-                <div>
-                  <h4>SLAM 3D-навигация</h4>
-                  <p>Безопасное движение рядом с рабочим персоналом</p>
-                </div>
-              </div>
-              <div class="f-feature-item">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"></path></svg>
-                <div>
-                  <h4>Модульные надстройки</h4>
-                  <p>Быстрая замена лотков, конвейера и подъемников</p>
-                </div>
+              <div class="stat-pill">
+                <span class="stat-val">до 40 кг</span>
+                <span class="stat-lbl">за 1 рейс</span>
               </div>
             </div>
-
-            <div style="display: flex; gap: 12px;">
-              <a href="#contact" class="btn-primary">Заказать аудит цеха</a>
-              <button class="btn-secondary cart-trigger">Запросить ТЭО для руководства</button>
+            <div class="industry-models">
+              <span class="models-lbl">Рекомендуемые модели:</span>
+              <span class="models-val">PUDU BellaBot Pro, KettyBot Pro, FlashBot</span>
             </div>
-          </div>
+            <button class="industry-cta" data-filter-cat="delivery">
+              <span>Смотреть роботов для ресторанов</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </article>
 
-          <div style="display: flex; align-items: center; justify-content: center;">
-            <img src="assets/images/pudu/image18.png" alt="PUDU T300 AMR робот для склада" style="max-width: 100%; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.7));" />
-          </div>
-        </div>
-
-        <!-- 3 Key Accessories from PPTX -->
-        <div class="factory-modules-grid">
-          <div class="factory-mod-card">
-            <div class="factory-mod-img">
-              <img src="assets/images/pudu/image21.png" alt="Lifting Rack подъемная стойка" />
+          <!-- 2. Клининг ТРЦ и БЦ -->
+          <article class="industry-card">
+            <div class="industry-card-header">
+              <div class="industry-icon-wrap" style="color: #00d2ff; background: rgba(0, 210, 255, 0.1);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+                </svg>
+              </div>
+              <span class="industry-badge">Коммерческий клининг</span>
             </div>
-            <h4>Подъемная стойка (Lifting Rack)</h4>
-            <p>
-              Прочная металлическая рама с автономным подъемом и стыковкой. Выдерживает нагрузку до 600 кг с блокируемыми колесами.
+            <h3 class="industry-title">ТРЦ, Бизнес-центры и Аэропорты</h3>
+            <p class="industry-desc">
+              Уборка 4-в-1: одновременное мытье, подметание, всасывание и дезинфекция. Автономная стыковка со станцией для слива/залива воды. Работа 24/7 без больничных, отпусков и текучки кадров.
             </p>
-            <ul class="factory-mod-specs">
-              <li>Автоматический захват и подъем стеллажа</li>
-              <li>Грузоподъемность: до 600 кг</li>
-              <li>Разработана эксклюзивно для PUDU T300/T600</li>
-            </ul>
-          </div>
-
-          <div class="factory-mod-card">
-            <div class="factory-mod-img">
-              <img src="assets/images/pudu/image24.png" alt="Conveyor роликовый конвейер" />
+            <div class="industry-stats">
+              <div class="stat-pill">
+                <span class="stat-val">1 = 4</span>
+                <span class="stat-lbl">заменяет клинеров</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">-60%</span>
+                <span class="stat-lbl">расход воды/химии</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">1000 м²</span>
+                <span class="stat-lbl">в час</span>
+              </div>
             </div>
-            <h4>Роликовый конвейер (Conveyor)</h4>
-            <p>
-              Самоприводная роликовая система для передачи грузов между производственными линиями по схеме «линия-линия» и «линия-человек».
-            </p>
-            <ul class="factory-mod-specs">
-              <li>Точность стыковки ±10 мм</li>
-              <li>Регулировка по высоте от 305 до 1100 мм</li>
-              <li>Нагрузка до 80 кг (до 160 кг в двухъярусной версии)</li>
-            </ul>
-          </div>
-
-          <div class="factory-mod-card">
-            <div class="factory-mod-img">
-              <img src="assets/images/pudu/image28.png" alt="Многоярусный лоток Tray" />
+            <div class="industry-models">
+              <span class="models-lbl">Рекомендуемые модели:</span>
+              <span class="models-val">PUDU CC1, PUDU SH1, PUDU MT1, BG1</span>
             </div>
-            <h4>Многоярусный лоток (Tray)</h4>
-            <p>
-              Модульная регулируемая система полок для упорядоченной доставки комплектующих на различные посты сборки в цеху.
+            <button class="industry-cta" data-filter-cat="cleaning">
+              <span>Смотреть клининговые комбайны</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </article>
+
+          <!-- 3. Склады и Производство AMR -->
+          <article class="industry-card">
+            <div class="industry-card-header">
+              <div class="industry-icon-wrap" style="color: #4be3a0; background: rgba(75, 227, 160, 0.1);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 20h20"></path>
+                  <path d="M5 20V8l5 4V8l5 4V4h4v16"></path>
+                  <rect x="7" y="15" width="3" height="5"></rect>
+                </svg>
+              </div>
+              <span class="industry-badge">AMR & Промышленность</span>
+            </div>
+            <h3 class="industry-title">Склады, Цеха и Производство</h3>
+            <p class="industry-desc">
+              Внутрицеховая логистика паллет, коробов и деталей между сборочными постами. Сменные надстройки (конвейер, подъемник 600 кг, лотки). Интеграция с WMS/ERP без переделки полов цеха.
             </p>
-            <ul class="factory-mod-specs">
-              <li>Сборка и разборка без инструментов</li>
-              <li>До 100 кг нагрузки на каждый отдельный ярус</li>
-              <li>Рифленая поверхность и защитные бортики</li>
-            </ul>
-          </div>
+            <div class="industry-stats">
+              <div class="stat-pill">
+                <span class="stat-val">до 600 кг</span>
+                <span class="stat-lbl">грузоподъемность</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">±10 мм</span>
+                <span class="stat-lbl">точность стыковки</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">от 80 см</span>
+                <span class="stat-lbl">узкие проходы</span>
+              </div>
+            </div>
+            <div class="industry-models">
+              <span class="models-lbl">Рекомендуемые модели:</span>
+              <span class="models-val">PUDU T300 AMR, T600, Unitree B2-W</span>
+            </div>
+            <button class="industry-cta" data-filter-cat="industrial">
+              <span>Смотреть решения для цеха</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </article>
+
+          <!-- 4. ВУЗы и R&D -->
+          <article class="industry-card">
+            <div class="industry-card-header">
+              <div class="industry-icon-wrap" style="color: #a78bfa; background: rgba(167, 139, 250, 0.1);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                  <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                </svg>
+              </div>
+              <span class="industry-badge">Наука & Образование</span>
+            </div>
+            <h3 class="industry-title">ВУЗы, Наука и R&D Лаборатории</h3>
+            <p class="industry-desc">
+              Платформы для обучения студентов, дипломных работ и грантовых исследований по ИИ, машинному зрению и SLAM-навигации. 100% открытый ROS2 / Python / C++ SDK, низкоуровневые API моторов.
+            </p>
+            <div class="industry-stats">
+              <div class="stat-pill">
+                <span class="stat-val">ROS2</span>
+                <span class="stat-lbl">открытый стек</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">4D LiDAR</span>
+                <span class="stat-lbl">360°x90° сенсоры</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">SDK</span>
+                <span class="stat-lbl">Python / C++</span>
+              </div>
+            </div>
+            <div class="industry-models">
+              <span class="models-lbl">Рекомендуемые модели:</span>
+              <span class="models-val">Unitree Go2 EDU, Unitree G1 Humanoid, Dex3-1</span>
+            </div>
+            <button class="industry-cta" data-filter-cat="quadruped">
+              <span>Смотреть платформы для R&D</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </article>
+
+          <!-- 5. Шоу, Презентации и Event -->
+          <article class="industry-card">
+            <div class="industry-card-header">
+              <div class="industry-icon-wrap" style="color: #ff4d6d; background: rgba(255, 77, 109, 0.1);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </div>
+              <span class="industry-badge">Event & Шоу</span>
+            </div>
+            <h3 class="industry-title">Шоу, Выставки и Презентации</h3>
+            <p class="industry-desc">
+              Синхронные танцы робособак, интерактивное общение гуманоида G1 с гостями форумов, раздача промо-материалов, съемки вирусных роликов для соцсетей. Максимальный охват и медийное внимание.
+            </p>
+            <div class="industry-stats">
+              <div class="stat-pill">
+                <span class="stat-val">100%</span>
+                <span class="stat-lbl">внимание гостей</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">GPT-ИИ</span>
+                <span class="stat-lbl">живой диалог</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">Аренда</span>
+                <span class="stat-lbl">с оператором</span>
+              </div>
+            </div>
+            <div class="industry-models">
+              <span class="models-lbl">Рекомендуемые модели:</span>
+              <span class="models-val">Unitree Go2 Pro, Unitree G1, Unitree B2</span>
+            </div>
+            <a href="#rent" class="industry-cta">
+              <span>Условия аренды на мероприятие</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+            </a>
+          </article>
         </div>
       </div>
     </section>
@@ -726,7 +777,7 @@
               </div>
               <div class="c-detail-text">
                 <div class="c-lbl">Электронная почта:</div>
-                <div class="c-val">temirkhan.shankulov@vant.bot / support@vant.bot</div>
+                <div class="c-val">info@xbot-robotics.kz / sales@xbot-robotics.kz</div>
               </div>
             </div>
           </div>
@@ -840,14 +891,14 @@
             <li><a href="#catalog">Гуманоиды G1 / H1</a></li>
             <li><a href="#catalog">Уборщики PUDU CC1</a></li>
             <li><a href="#catalog">Сервисные роботы</a></li>
-            <li><a href="#factory">AMR платформы T300</a></li>
+            <li><a href="#industries">AMR платформы T300</a></li>
           </ul>
         </div>
 
         <div class="footer-col">
           <h5>Услуги</h5>
           <ul>
-            <li><a href="#factory">Автоматизация цехов</a></li>
+            <li><a href="#industries">Отраслевые решения</a></li>
             <li><a href="#calculator">Расчет окупаемости (ROI)</a></li>
             <li><a href="#rent">Аренда на мероприятия</a></li>
             <li><a href="#about">Сервисный центр Алматы</a></li>
@@ -860,7 +911,7 @@
           <ul>
             <li>+7 (777) 911-74-99</li>
             <li>ул. Назарбаева 88, офис 20, Алматы</li>
-            <li>temirkhan.shankulov@vant.bot</li>
+            <li>info@xbot-robotics.kz</li>
             <li>Пн–Пт: 09:00 – 19:00</li>
           </ul>
         </div>

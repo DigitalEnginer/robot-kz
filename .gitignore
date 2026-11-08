@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Large media files
+assets/images/pudu/*.mp4
+
+# Test logs & artifacts
+tests/ui_audit_results.json
+tests/*.log
+
+# Working files
+*.pptx
+*.pdf
+scripts/

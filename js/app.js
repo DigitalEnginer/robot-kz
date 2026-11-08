@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCatalog() {
     if (!robotsGrid) return;
 
-    let filtered = [...ROBOTS_DATA];
+    let filtered = ROBOTS_DATA.filter(r => r.catalog_visible !== false);
 
     // Category filter
     if (currentCategory !== 'all') {
@@ -230,6 +230,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  
+  // Filter catalog when clicking industry CTA buttons
+  document.querySelectorAll('.industry-cta[data-filter-cat]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cat = btn.dataset.filterCat;
+      if (!cat) return;
+      currentCategory = cat;
+      categoryPills.forEach(p => p.classList.toggle('active', p.dataset.category === cat));
+      renderCatalog();
+      const catalogEl = document.getElementById('catalog');
+      if (catalogEl) {
+        catalogEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
   // Support Enter / Space keyboard navigation on robot cards
   robotsGrid?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -247,113 +264,173 @@ document.addEventListener('DOMContentLoaded', () => {
     const robot = ROBOTS_DATA.find(r => r.slug === slug);
     if (!robot || !productDialog) return;
 
-    // Save triggering element to return focus on modal close
     lastModalTrigger = trigger || document.activeElement;
 
-    const specsRows = Object.entries(robot.specs || {}).map(([k, v]) => `
-      <tr>
-        <th>${k}</th>
-        <td>${v}</td>
-      </tr>
-    `).join('');
+    let activeEdition = (robot.editions && robot.editions.length > 0) ? robot.editions[0] : null;
 
-    dialogContent.innerHTML = `
-      <div class="modal-inner">
-        <div class="modal-header">
-          <div class="modal-header-title-wrap">
-            <span class="card-badge">${robot.badge || 'Официальная поставка'}</span>
-            <h3 id="productDialogTitle">${robot.name}</h3>
+    function renderModalContent() {
+      const currentPriceLabel = activeEdition ? activeEdition.price_label : robot.price_label;
+      const currentLeaseLabel = activeEdition ? activeEdition.lease_label : robot.lease_label;
+      const currentDesc = activeEdition ? activeEdition.desc : (robot.full_desc || robot.desc || '');
+      const currentSpecs = (activeEdition && activeEdition.specs) ? activeEdition.specs : (robot.specs || {});
+      const currentName = activeEdition ? `${robot.name} (${activeEdition.name})` : robot.name;
+
+      const specsRows = Object.entries(currentSpecs).map(([k, v]) => `
+        <tr>
+          <th>${k}</th>
+          <td>${v}</td>
+        </tr>
+      `).join('');
+
+      const editionsHtml = (robot.editions && robot.editions.length > 0) ? `
+        <div class="edition-selector-box">
+          <span class="edition-selector-lbl">Выберите модификацию / комплектацию:</span>
+          <div class="edition-pills-row">
+            ${robot.editions.map((ed, idx) => `
+              <button type="button" class="edition-pill-btn ${ed.name === activeEdition.name ? 'active' : ''}" data-edition-idx="${idx}">
+                ${ed.name}
+              </button>
+            `).join('')}
           </div>
-          <button type="button" class="modal-close-btn" id="closeModalBtn" aria-label="Закрыть окно" autofocus>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6 6 18M6 6l12 12"></path>
-            </svg>
-          </button>
         </div>
+      ` : '';
 
-        <div class="modal-body">
-          <div class="modal-img-wrap">
-            <img src="${robot.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="${robot.name}" />
-          </div>
-          <div class="modal-details">
-            <p class="modal-desc">${robot.full_desc || robot.desc || ''}</p>
-            
-            <h4 style="font-size: 0.96rem; margin-bottom: 10px; color: #fff;">Технические спецификации:</h4>
-            <table class="modal-specs-table">
-              <tbody>${specsRows}</tbody>
-            </table>
-
-            <div style="background: rgba(75, 227, 160, 0.06); border: 1px solid rgba(75, 227, 160, 0.2); border-radius: var(--radius-sm); padding: 12px; margin-top: auto;">
-              <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-mint); margin-bottom: 6px;">Условия поставки в Казахстане:</div>
-              <div style="font-size: 0.78rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span>В наличии в Алматы / Доставка 1–3 дня по РК</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span>Официальная гарантия 12 месяцев + выездной сервис XBOT</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span>Обучение операторов с выдачей сертификата</span>
-                </div>
+      const accessoriesHtml = (robot.accessories && robot.accessories.length > 0) ? `
+        <div class="modal-accessories-box">
+          <h4 class="modal-accessories-title">Ключевые модульные надстройки для цеха:</h4>
+          <div class="modal-accessories-grid">
+            ${robot.accessories.map(acc => `
+              <div class="modal-acc-card">
+                <img src="${acc.image}" alt="${acc.name}" loading="lazy" />
+                <h5>${acc.name}</h5>
+                <p>${acc.desc}</p>
               </div>
-            </div>
-
-            <div class="modal-kp-explain" style="margin-top: 10px; font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: flex-start; gap: 6px; line-height: 1.4;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 16v-4"></path>
-                <path d="M12 8h.01"></path>
-              </svg>
-              <span><strong>КП (Коммерческое предложение)</strong> — официальный расчет стоимости со спецификацией, гарантией и НДС 12% для бухгалтерии или физлиц.</span>
-            </div>
+            `).join('')}
           </div>
         </div>
+      ` : '';
 
-        <div class="modal-footer">
-          <div class="modal-price-box">
-            <div class="m-price">${robot.price_label}</div>
-            <div class="m-lease">${robot.lease_label}</div>
-          </div>
-          <div class="modal-actions">
-            <a href="https://wa.me/77779117499?text=${encodeURIComponent('Здравствуйте! Интересует робот ' + robot.name + '. Отправьте расчет КП и условия тест-драйва.')}" 
-               target="_blank" class="btn-secondary" style="padding: 10px 18px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.983.541 1.836.828 2.801.829l.005-.001c3.182 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.765-5.778-5.765zm9.969 5.768c0 5.518-4.482 10-10 10-1.705 0-3.32-.435-4.735-1.196l-5.265 1.381 1.405-5.132c-.859-1.488-1.355-3.218-1.355-5.053 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/>
+      dialogContent.innerHTML = `
+        <div class="modal-inner">
+          <div class="modal-header">
+            <div class="modal-header-title-wrap">
+              <span class="card-badge">${robot.badge || 'Официальная поставка'}</span>
+              <h3 id="productDialogTitle">${robot.name}</h3>
+            </div>
+            <button type="button" class="modal-close-btn" id="closeModalBtn" aria-label="Закрыть окно" autofocus>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6 6 18M6 6l12 12"></path>
               </svg>
-              WhatsApp
-            </a>
-            <button class="btn-primary" style="padding: 10px 22px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px;" id="modalAddCartBtn" data-slug="${robot.slug}">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="12" y1="18" x2="12" y2="12"></line>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
-              </svg>
-              Добавить в смету (КП)
             </button>
           </div>
+
+          <div class="modal-body">
+            <div class="modal-img-wrap">
+              <img src="${robot.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="${robot.name}" />
+            </div>
+            <div class="modal-details">
+              ${editionsHtml}
+
+              <p class="modal-desc">${currentDesc}</p>
+              
+              <h4 style="font-size: 0.96rem; margin-bottom: 10px; color: #fff;">Технические спецификации:</h4>
+              <table class="modal-specs-table">
+                <tbody>${specsRows}</tbody>
+              </table>
+
+              ${accessoriesHtml}
+
+              <div style="background: rgba(75, 227, 160, 0.06); border: 1px solid rgba(75, 227, 160, 0.2); border-radius: var(--radius-sm); padding: 12px; margin-top: 16px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-mint); margin-bottom: 6px;">Условия поставки в Казахстане:</div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>В наличии в Алматы / Доставка 1–3 дня по Казахстану</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Официальная гарантия 12 месяцев + выездной сервис XBOT</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Обучение операторов и инженеров заказчика с сертификатом</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-kp-explain" style="margin-top: 10px; font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: flex-start; gap: 6px; line-height: 1.4;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 16v-4"></path>
+                  <path d="M12 8h.01"></path>
+                </svg>
+                <span><strong>КП (Коммерческое предложение)</strong> — официальный расчет стоимости со спецификацией, гарантией и НДС 12% для бухгалтерии или физлиц.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <div class="modal-price-box">
+              <div class="m-price">${currentPriceLabel}</div>
+              <div class="m-lease">${currentLeaseLabel}</div>
+            </div>
+            <div class="modal-actions">
+              <a href="https://wa.me/77779117499?text=${encodeURIComponent('Здравствуйте! Интересует робот ' + currentName + '. Отправьте расчет КП и условия тест-драйва.')}" 
+                 target="_blank" class="btn-secondary" style="padding: 10px 18px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.983.541 1.836.828 2.801.829l.005-.001c3.182 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.765-5.778-5.765zm9.969 5.768c0 5.518-4.482 10-10 10-1.705 0-3.32-.435-4.735-1.196l-5.265 1.381 1.405-5.132c-.859-1.488-1.355-3.218-1.355-5.053 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/>
+                </svg>
+                WhatsApp
+              </a>
+              <button class="btn-primary" style="padding: 10px 22px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px;" id="modalAddCartBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="12" y1="18" x2="12" y2="12"></line>
+                  <line x1="9" y1="15" x2="15" y2="15"></line>
+                </svg>
+                + В смету
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
 
-    // Hook buttons inside modal
-    document.getElementById('closeModalBtn')?.addEventListener('click', () => productDialog.close());
-    document.getElementById('modalAddCartBtn')?.addEventListener('click', () => {
-      addToCart(robot.slug);
-      productDialog.close();
-    });
+      document.getElementById('closeModalBtn')?.addEventListener('click', () => productDialog.close());
 
-    // Show modal (native <dialog> with CSS overscroll-behavior handles page scroll containment)
+      dialogContent.querySelectorAll('.edition-pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.editionIdx, 10);
+          if (robot.editions && robot.editions[idx]) {
+            activeEdition = robot.editions[idx];
+            renderModalContent();
+          }
+        });
+      });
+
+      document.getElementById('modalAddCartBtn')?.addEventListener('click', () => {
+        if (activeEdition) {
+          addToCart(robot.slug, {
+            slug: robot.slug,
+            customId: `${robot.slug}-${activeEdition.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+            name: `${robot.name} (${activeEdition.name})`,
+            price_kzt: activeEdition.price_kzt,
+            price_label: activeEdition.price_label,
+            image: robot.image,
+            badge: robot.badge
+          });
+        } else {
+          addToCart(robot.slug);
+        }
+        productDialog.close();
+      });
+    }
+
+    renderModalContent();
     productDialog.showModal();
 
-    // Ensure focus moves to first interactive control inside modal
-    const firstInteractive = productDialog.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    if (firstInteractive) {
-      firstInteractive.focus();
-    }
+    const firstInteractive = productDialog.querySelector('button, [href], input, select, textarea');
+    if (firstInteractive) firstInteractive.focus();
   }
 
   // Restore focus to invoker trigger on modal close
@@ -388,18 +465,36 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('xbot_cart', JSON.stringify(cart));
   }
 
-  function addToCart(slug) {
+  function addToCart(slug, customItem = null) {
     const robot = ROBOTS_DATA.find(r => r.slug === slug);
     if (!robot) return;
     
-    if (!cart.some(item => item.slug === slug)) {
-      cart.push(robot);
+    const itemToAdd = customItem || robot;
+    const itemKey = itemToAdd.customId || itemToAdd.slug;
+
+    if (!cart.some(it => (it.customId || it.slug) === itemKey)) {
+      cart.push({
+        slug: robot.slug,
+        customId: itemKey,
+        name: itemToAdd.name || robot.name,
+        price_kzt: itemToAdd.price_kzt !== undefined ? itemToAdd.price_kzt : (robot.price_kzt || 0),
+        price_label: itemToAdd.price_label || robot.price_label || 'По запросу',
+        image: itemToAdd.image || robot.image || 'assets/cards/ph-go2-pro-1.webp',
+        badge: itemToAdd.badge || robot.badge || 'Официальная поставка'
+      });
       updateCartBadges();
-      showToast(`Модель «${robot.name}» добавлена в смету (КП)!`);
+      showToast(`«${itemToAdd.name || robot.name}» добавлена в смету!`);
     } else {
-      showToast(`«${robot.name}» уже в вашей смете (КП)`);
+      showToast(`«${itemToAdd.name || robot.name}» уже в вашей смете`);
     }
     renderDrawerItems();
+  }
+
+  function removeFromCart(key) {
+    cart = cart.filter(item => (item.customId || item.slug) !== key);
+    updateCartBadges();
+    renderDrawerItems();
+    showToast('Модель удалена из сметы');
   }
 
   function removeFromCart(slug) {
@@ -433,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="cart-item-name">${item.name}</div>
             <div class="cart-item-price">${item.price_label}</div>
           </div>
-          <button class="cart-item-del" data-slug="${item.slug}" title="Удалить" aria-label="Удалить ${item.name} из КП">
+          <button class="cart-item-del" data-key="${item.customId || item.slug}" title="Удалить" aria-label="Удалить ${item.name} из КП">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
@@ -472,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   cartTriggers.forEach(t => t.addEventListener('click', (e) => openDrawer(e.currentTarget)));
-  closeDrawerBtn?.addEventListener('click', closeDrawer);
+  closeDrawerBtn?.addEventListener('click', (e) => { e.preventDefault(); closeDrawer(); });
   drawerBackdrop?.addEventListener('click', closeDrawer);
 
   // Focus trap for cart drawer
