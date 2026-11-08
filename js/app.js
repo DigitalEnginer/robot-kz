@@ -742,15 +742,15 @@ document.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
-  const sphereRecommendations = {
+    const sphereRecommendations = {
     'cleaning-small': {
       name: 'PUDU ET1 (Компактный поломой)',
       desc: 'Идеален для площадей 100–800 м². Горячая мойка 85°C и автоматическая рабочая станция 8-в-1 для автономного слива, сушки и дезинфекции.',
       image: 'assets/cards/ph-pudu-et1-1.webp',
       slug: 'pudu-et1',
       spec1: 'до 800 м²/ч',
-      spec2: 'Станция 8-в-1',
-      spec3: 'Официальная гарантия 12 мес. в РК'
+      spec2: 'Горячая мойка 85°C',
+      spec3: 'Док-станция 8-в-1 • автослив и залив'
     },
     'cleaning-medium': {
       name: 'PUDU CC1 Pro (Клининговый комбайн 4-в-1)',
@@ -758,8 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
       image: 'assets/cards/ph-pudu-cc1-1.webp',
       slug: 'pudu-cc1',
       spec1: '1 000 м²/ч',
-      spec2: 'до 12 000 м²/день флотом',
-      spec3: 'Поддержка авторизованного СЦ'
+      spec2: 'Уборка 4-в-1 (мытьё, сушка, скраббер)',
+      spec3: 'до 12 000 м²/день флотом'
     },
     'cleaning-large': {
       name: 'PUDU CC1 Pro + PUDU BG1',
@@ -767,80 +767,80 @@ document.addEventListener('DOMContentLoaded', () => {
       image: 'assets/cards/ph-pudu-cc1-1.webp',
       slug: 'pudu-cc1',
       spec1: 'до 12 000 м²/день',
-      spec2: 'Координация до 10 роботов',
-      spec3: 'СЦ ORDA ROBOTICS Алматы'
+      spec2: 'Централизованная координация флота',
+      spec3: 'Автономная рабочая станция'
     },
     'horeca-small': {
       name: 'PuduBot 2 (с защитным кейсом)',
       desc: 'Компактная доставка до 400 заказов в день. Закрытый гигиеничный кейс Protection Case с магнитными створками.',
-      image: 'assets/cards/ph-pudubot-2-1.webp',
-      slug: 'pudubot-2',
+      image: 'assets/cards/ph-pudu-pudubot-2-1.webp',
+      slug: 'pudu-pudubot-2',
       spec1: 'до 400 заказов/день',
       spec2: 'Заменяет до 5 официантов',
-      spec3: 'Нагрузка до 20 кг'
+      spec3: 'До 20 кг • до 6 ч работы'
     },
     'horeca-medium': {
       name: 'PUDU BellaBot Pro',
       desc: 'Премиальный робот-официант с мимикой, мультимодальным голосовым диалогом и 4 уровнями подносов с подсветкой.',
-      image: 'assets/cards/ph-bellabot-pro-1.webp',
-      slug: 'bellabot-pro',
-      spec1: 'до 40 кг за рейс',
-      spec2: '4 независимых лотка',
-      spec3: 'Голосовое общение с гостями'
+      image: 'assets/cards/ph-pudu-bellabot-1.webp',
+      slug: 'pudu-bellabot',
+      spec1: 'до 400 заказов/день',
+      spec2: '4 независимых лотка с подсветкой',
+      spec3: 'до 40 кг • до 24 ч работы'
     },
     'horeca-large': {
       name: 'PUDU FlashBot Max (Межэтажная доставка)',
       desc: 'Автономная интеграция с лифтовыми контроллерами и системами отелей для круглосуточного рум-сервиса без персонала.',
-      image: 'assets/cards/ph-flashbot-1.webp',
-      slug: 'flashbot',
-      spec1: 'Интеграция с лифтами РК',
-      spec2: 'Автономный рум-сервис',
-      spec3: 'Защищенный модульный бокс'
+      image: 'assets/cards/ph-pudu-flashbot-max-1.webp',
+      slug: 'pudu-flashbot-max',
+      spec1: 'Интеграция с лифтовыми контроллерами',
+      spec2: 'Автономный рум-сервис 24/7',
+      spec3: 'Закрытый бокс 30 л • до 12 ч'
     },
     'amr-small': {
       name: 'PUDU T300 AMR (Многоярусный лоток Tray)',
       desc: 'Автономная тележка для межоперационной доставки коробов и компонентов в цехах с узкими проходами от 80 см.',
       image: 'assets/cards/ph-pudu-t300-1.webp',
       slug: 'pudu-t300',
-      spec1: 'до 100 кг на ярус',
-      spec2: 'Проходы от 80 см',
-      spec3: 'Точность стыковки ±10 мм'
+      spec1: 'Узкие проходы от 80 см',
+      spec2: 'Многоярусный лоток Tray',
+      spec3: 'до 100 кг на ярус • точность ±10 мм'
     },
     'amr-medium': {
       name: 'PUDU T300 AMR (Роликовый конвейер)',
       desc: 'Автоматическая стыковка с производственными конвейерами (±10 мм) для бесперебойного перемещения тары.',
       image: 'assets/cards/ph-pudu-t300-1.webp',
       slug: 'pudu-t300',
-      spec1: 'Грузоподъемность 300 кг',
-      spec2: 'Роликовый модуль передачи',
-      spec3: 'Интеграция с WMS/ERP'
+      spec1: 'Автоматическая стыковка с конвейером',
+      spec2: 'Интеграция с заводской WMS/ERP',
+      spec3: 'Грузоподъёмность 300 кг'
     },
     'amr-large': {
       name: 'PUDU T300 / T600 (Подъемная стойка Lifting Rack)',
       desc: 'Тяжелый тягач с ножничным или серво-подъемником для паллет до 600 кг внутри заводских складов.',
       image: 'assets/cards/ph-pudu-t300-1.webp',
       slug: 'pudu-t300',
-      spec1: 'до 600 кг нагрузки',
-      spec2: 'Подъем паллет на 120 мм',
-      spec3: 'Безопасность 360° LiDAR'
+      spec1: 'Подъёмная стойка Lifting Rack',
+      spec2: 'Транспортировка паллет до 600 кг',
+      spec3: 'Грузоподъёмность 300/600 кг'
     },
     'rnd-small': {
       name: 'Unitree Go2 EDU (Открытая платформа ROS2)',
       desc: 'Полный доступ к ROS2, Python и C++ API, чтение токов моторов и 4D LiDAR для лабораторий и ВУЗов Казахстана.',
       image: 'assets/cards/ph-go2-pro-1.webp',
       slug: 'go2-pro',
-      spec1: 'Открытый ROS2 / Python SDK',
-      spec2: '4D-LiDAR 360°x90°',
-      spec3: 'Высокоскоростная шина данных'
+      spec1: 'Скорость до 3.7 м/с',
+      spec2: 'Открытый стек ROS2 / Python / C++',
+      spec3: '4D-LiDAR 360°x90° • нагрузка до 8-10 кг'
     },
     'rnd-medium': {
       name: 'Unitree B2 / PUDU D5 (Промышленный класс IP67)',
       desc: 'Работа при -20°C...+55°C, защита IP67, автономность до 5 часов и преодоление уклонов до 45° для патрулирования промзон.',
-      image: 'assets/cards/ph-b2-1.webp',
+      image: 'assets/cards/u-b2.webp',
       slug: 'unitree-b2',
-      spec1: 'Защита IP67 / уклоны 45°',
-      spec2: 'Нагрузка до 40–50 кг',
-      spec3: 'Автономность до 5 часов'
+      spec1: 'Патруль промзон IP67 (уклоны 45°)',
+      spec2: 'Работа от -20°C до +55°C',
+      spec3: 'Нагрузка 40–50 кг • до 5 ч работы'
     },
     'rnd-large': {
       name: 'Unitree G1 Humanoid (Робот-гуманоид 43 DoF)',
@@ -849,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
       slug: 'unitree-g1',
       spec1: 'Рост 127 см / вес 35 кг',
       spec2: 'до 43 степеней свободы',
-      spec3: 'Манипуляторы Dex3-1'
+      spec3: 'Манипуляторы Dex3-1 • GPT диалог'
     },
     'event-small': {
       name: 'Unitree Go2 Pro (Шоу и фотозона)',
@@ -857,32 +857,36 @@ document.addEventListener('DOMContentLoaded', () => {
       image: 'assets/cards/ph-go2-pro-1.webp',
       slug: 'go2-pro',
       spec1: 'Скорость до 3.7 м/с',
-      spec2: 'GPT диалог с гостями',
-      spec3: 'Аренда с оператором в РК'
+      spec2: 'Интерактивное шоу, сальто и трюки',
+      spec3: 'Аренда с сертифицированным оператором'
     },
     'event-medium': {
       name: 'PUDU KettyBot Pro (18.5" HD Промо-экран)',
       desc: 'Робот-промоутер для трансляции ваших видеороликов, навигации по стенду форума и раздачи welcome-дринков.',
-      image: 'assets/cards/ph-kettybot-1.webp',
-      slug: 'kettybot-pro',
-      spec1: '18.5" вертикальный HD экран',
-      spec2: 'Круизный обход зала',
-      spec3: 'До 8 часов работы'
+      image: 'assets/cards/ph-pudu-kettybot-pro-1.webp',
+      slug: 'pudu-kettybot-pro',
+      spec1: '18.5" вертикальный рекламный HD-экран',
+      spec2: 'Круизный обход и лидогенерация',
+      spec3: 'Поднос для напитков • до 8 ч'
     },
     'event-large': {
       name: 'Unitree R1 (Спортивный гуманоид)',
       desc: 'Сверхлегкий атлетичный гуманоид весом 25–29 кг с 20–26 степенями свободы для акробатики, бега и WOW-презентаций.',
-      image: 'assets/cards/u-g1.webp',
+      image: 'assets/cards/u-r1.webp',
       slug: 'unitree-r1',
-      spec1: 'Вес всего 25–29 кг',
-      spec2: '20–26 степеней свободы',
-      spec3: 'Стойка на руках и акробатика'
+      spec1: 'Спортивная динамика до 3.3 м/с',
+      spec2: 'Акробатика, сальто и бег (20–26 DoF)',
+      spec3: 'Сверхлегкий вес 25–29 кг'
     }
   };
 
-  function updateConfiguratorRecommendation() {
+    function updateConfiguratorRecommendation() {
     const key = `${cfgState.sphere}-${cfgState.scale}`;
     const rec = sphereRecommendations[key] || sphereRecommendations[`${cfgState.sphere}-small`] || sphereRecommendations['cleaning-small'];
+
+    // Dynamic catalog lookup for 100% working image & fallback
+    const robotMatch = (typeof ROBOTS_DATA !== 'undefined' ? ROBOTS_DATA : []).find(r => r.slug === rec.slug);
+    const finalImage = (robotMatch && robotMatch.image) ? robotMatch.image : rec.image;
 
     const titleEl = document.getElementById('cfgResultTitle');
     const descEl = document.getElementById('cfgResultDesc');
@@ -896,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (titleEl) titleEl.textContent = rec.name;
     if (descEl) descEl.textContent = rec.desc;
     if (imgEl) {
-      imgEl.src = rec.image;
+      imgEl.src = finalImage;
       imgEl.alt = rec.name;
     }
     if (spec1El) spec1El.textContent = rec.spec1;
@@ -967,13 +971,13 @@ document.addEventListener('DOMContentLoaded', () => {
   updateConfiguratorRecommendation();
 
   // === 6. HERO VISUAL TABS SWITCHER (AUTHENTIC B2B STATUS) ===
-  const heroRobots = [
+    const heroRobots = [
     {
       name: 'Unitree Go2 Pro',
       badge: 'Хит продаж в Казахстане',
       desc: 'Четвероногий робот с 4D-лидаром, GPT-интеллектом и максимальной проходимостью',
-      price: 'По запросу (КП за 15 мин)',
-      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
+      price: 'По запросу',
+      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
       img: 'assets/cards/ph-go2-pro-1.webp',
       slug: 'go2-pro'
     },
@@ -981,8 +985,8 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'Unitree G1 Humanoid',
       badge: 'Новинка 2026',
       desc: 'Антропоморфный робот-гуманоид массового производства, до 43 степеней свободы',
-      price: 'По запросу (КП за 15 мин)',
-      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
+      price: 'По запросу',
+      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
       img: 'assets/cards/u-g1.webp',
       slug: 'unitree-g1'
     },
@@ -990,8 +994,8 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'PUDU CC1 Pro',
       badge: 'В наличии в Алматы',
       desc: 'Автономный клининговый комбайн 4-в-1 для торговых центров и складов до 12 000 м²',
-      price: 'По запросу (КП за 15 мин)',
-      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
+      price: 'По запросу',
+      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
       img: 'assets/cards/ph-pudu-cc1-1.webp',
       slug: 'pudu-cc1'
     },
@@ -999,8 +1003,8 @@ document.addEventListener('DOMContentLoaded', () => {
       name: 'PUDU T300 AMR',
       badge: 'Для цехов и заводов',
       desc: 'Промышленная автономная платформа 300 кг для сопряжения с конвейерами цеха',
-      price: 'По запросу (КП за 15 мин)',
-      lease: 'Доступен лизинг и рассрочка для юрлиц РК',
+      price: 'По запросу',
+      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
       img: 'assets/cards/ph-pudu-t300-1.webp',
       slug: 'pudu-t300'
     }
