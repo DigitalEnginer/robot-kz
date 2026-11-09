@@ -37,7 +37,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 80px;
+  scroll-padding-top: 76px;
   font-size: 16px;
   color-scheme: dark;
   overflow-x: clip;
@@ -48,12 +48,13 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: clip;
   position: relative;
   width: 100%;
   -webkit-font-smoothing: antialiased;
 }
 
+html.body-lock,
 body.body-lock {
   overflow: hidden !important;
   touch-action: none;
@@ -89,11 +90,32 @@ button, input, select, textarea {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(7, 9, 10, 0.88);
+  width: 100%;
+  container-type: scroll-state;
+  container-name: site-header;
+}
+
+.site-header-bar {
+  width: 100%;
+  background: rgba(7, 9, 10, 0.86);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
-  transition: var(--transition);
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+@container site-header scroll-state(stuck: top) {
+  .site-header-bar {
+    background: rgba(7, 9, 10, 0.96);
+    border-bottom-color: rgba(75, 227, 160, 0.28);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  }
+}
+
+.site-header.is-stuck .site-header-bar {
+  background: rgba(7, 9, 10, 0.96);
+  border-bottom-color: rgba(75, 227, 160, 0.28);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
 .header-inner {
@@ -108,6 +130,7 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-shrink: 0;
 }
 
 .brand-logo {
@@ -118,6 +141,7 @@ button, input, select, textarea {
   font-size: 1.35rem;
   letter-spacing: -0.02em;
   color: #fff;
+  white-space: nowrap;
 }
 
 .brand-logo svg {
@@ -146,6 +170,7 @@ button, input, select, textarea {
   align-items: center;
   gap: 6px;
   list-style: none;
+  scroll-target-group: auto;
 }
 
 .nav-links a {
@@ -154,6 +179,7 @@ button, input, select, textarea {
   font-weight: 500;
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
+  white-space: nowrap;
   transition: var(--transition);
 }
 
@@ -162,15 +188,18 @@ button, input, select, textarea {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.nav-links a.active {
+.nav-links a:is(:target-current, .active, .target-current) {
   color: var(--accent-mint);
-  background: rgba(75, 227, 160, 0.08);
+  background: rgba(75, 227, 160, 0.12);
+  box-shadow: inset 0 -2px 0 var(--accent-mint);
+  text-shadow: 0 0 0.35px currentColor;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .phone-link {
@@ -184,6 +213,8 @@ button, input, select, textarea {
   padding: 6px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: var(--transition);
 }
 
@@ -204,6 +235,8 @@ button, input, select, textarea {
   border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: var(--transition);
   box-shadow: 0 4px 14px var(--accent-mint-glow);
 }
@@ -369,6 +402,7 @@ button, input, select, textarea {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  scroll-target-group: auto;
 }
 
 .mobile-nav-link {
@@ -385,8 +419,7 @@ button, input, select, textarea {
   transition: var(--transition);
 }
 
-.mobile-nav-link:hover,
-.mobile-nav-link.active {
+.mobile-nav-link:is(:hover, :target-current, .active, .target-current) {
   background: rgba(75, 227, 160, 0.08);
   border-color: rgba(75, 227, 160, 0.25);
   color: var(--accent-mint);
@@ -2297,10 +2330,10 @@ dialog::backdrop {
   .brand-badge {
     display: none;
   }
-  .phone-text {
+  .header-actions .phone-text {
     display: none;
   }
-  .phone-link {
+  .header-actions .phone-link {
     padding: 9px;
     border-radius: 50%;
     width: 40px;

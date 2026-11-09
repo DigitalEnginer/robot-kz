@@ -62,15 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
   const closeMobileNav = document.getElementById('closeMobileNav');
 
-  // Centralized Body Scroll Lock Helper for drawers
+  // Centralized Scroll Lock Helper on <html> so sticky header on <body> never drops
   function setBodyLock(lock) {
     if (lock) {
-      document.body.classList.add('body-lock');
+      document.documentElement.classList.add('body-lock');
     } else {
       const isDrawerOpen = cartDrawer?.classList.contains('open');
       const isMobileNavOpen = mobileNav?.classList.contains('open');
       if (!isDrawerOpen && !isMobileNavOpen) {
-        document.body.classList.remove('body-lock');
+        document.documentElement.classList.remove('body-lock');
       }
     }
   }
@@ -669,16 +669,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Close menu & smooth scroll when link is clicked
-  const allNavLinks = document.querySelectorAll('.nav-links a, .mobile-nav-links a, .mobile-cta-btn');
+  // Close menu & smooth scroll when link is clicked + Scrollspy + Stuck header state
+  const navSectionLinks = document.querySelectorAll('.nav-links a, .mobile-nav-links a');
+  const supportsScrollTargetGroup = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('scroll-target-group: auto');
+
+  function setManualActiveNav(href) {
+    navSectionLinks.forEach(link => {
+      const isMatch = Boolean(href) && link.getAttribute('href') === href;
+      link.classList.toggle('target-current', isMatch);
+      link.classList.toggle('active', isMatch);
+      link.setAttribute('aria-current', isMatch ? 'true' : 'false');
+    });
+  }
+
+  const allNavLinks = document.querySelectorAll('.nav-links a, .mobile-nav-links a, .mobile-cta-btn, .brand-logo');
   allNavLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       closeMobileMenu();
       const href = link.getAttribute('href');
+      if (href === '#') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!supportsScrollTargetGroup) setManualActiveNav(null);
+        if (history.pushState) {
+          history.pushState(null, '', window.location.pathname + window.location.search);
+        }
+        return;
+      }
       if (href && href.startsWith('#') && href.length > 1) {
         const targetSection = document.querySelector(href);
         if (targetSection) {
           e.preventDefault();
+          if (!supportsScrollTargetGroup) {
+            setManualActiveNav(href);
+          } else {
+            navSectionLinks.forEach(item => {
+              item.setAttribute('aria-current', item.getAttribute('href') === href ? 'true' : 'false');
+            });
+          }
           targetSection.scrollIntoView({ behavior: 'smooth' });
           if (history.pushState) {
             history.pushState(null, '', href);
@@ -687,6 +715,79 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Scrollspy (Native CSS scroll-target-group when supported, IntersectionObserver fallback otherwise)
+  if (supportsScrollTargetGroup) {
+    let scrollSyncRaf = 0;
+    const syncAriaCurrent = () => {
+      const currentLink = document.querySelector('#mainNav a:target-current, .mobile-nav-links a:target-current');
+      const activeHref = currentLink ? currentLink.getAttribute('href') : null;
+      navSectionLinks.forEach(link => {
+        const isMatch = Boolean(activeHref) && link.getAttribute('href') === activeHref;
+        link.setAttribute('aria-current', isMatch ? 'true' : 'false');
+        if (link.closest('.mobile-nav-links')) {
+          link.classList.toggle('target-current', isMatch);
+        }
+      });
+    };
+    const scheduleSync = () => {
+      if (scrollSyncRaf) return;
+      scrollSyncRaf = requestAnimationFrame(() => {
+        scrollSyncRaf = 0;
+        syncAriaCurrent();
+      });
+    };
+    syncAriaCurrent();
+    document.addEventListener('scrollend', syncAriaCurrent);
+    window.addEventListener('scroll', scheduleSync, { passive: true });
+    menuToggle?.addEventListener('click', syncAriaCurrent);
+  } else {
+    const sectionTargets = Array.from(document.querySelectorAll('#mainNav a[href^="#"]'))
+      .map(link => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
+
+    if (sectionTargets.length > 0 && 'IntersectionObserver' in window) {
+      const sectionObserver = new IntersectionObserver((entries) => {
+        if (window.scrollY < 160) {
+          setManualActiveNav(null);
+          return;
+        }
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            if (id) setManualActiveNav(`#${id}`);
+          }
+        });
+      }, { rootMargin: '-22% 0px -60% 0px', threshold: 0 });
+
+      sectionTargets.forEach(sec => sectionObserver.observe(sec));
+
+      window.addEventListener('scroll', () => {
+        if (window.scrollY < 160) {
+          setManualActiveNav(null);
+        }
+      }, { passive: true });
+    }
+  }
+
+  // Fallback for Firefox/Safari where container-type: scroll-state is not yet supported
+  const siteHeader = document.getElementById('siteHeader') || document.querySelector('.site-header');
+  const supportsScrollState = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('container-type: scroll-state');
+  if (siteHeader && !supportsScrollState) {
+    if ('IntersectionObserver' in window) {
+      const headerObserver = new IntersectionObserver(([entry]) => {
+        entry.target.classList.toggle('is-stuck', entry.intersectionRatio < 1);
+      }, {
+        threshold: [1],
+        rootMargin: '-1px 0px 0px 0px'
+      });
+      headerObserver.observe(siteHeader);
+    } else {
+      window.addEventListener('scroll', () => {
+        siteHeader.classList.toggle('is-stuck', window.scrollY > 4);
+      }, { passive: true });
+    }
+  }
 
   // Escape key handling
   document.addEventListener('keydown', (e) => {
