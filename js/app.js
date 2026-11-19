@@ -219,12 +219,18 @@ document.addEventListener('DOMContentLoaded', () => {
     robotsGrid.innerHTML = list.map(seriesCardHTML).join('');
   }
 
+  // Smooth scroll only for short hops; long jumps (e.g. catalog → form on a phone) are instant
+  function smartScrollTo(top) {
+    const far = Math.abs(top - window.scrollY) > window.innerHeight * 2.5;
+    window.scrollTo({ top, behavior: far ? 'instant' : 'smooth' });
+  }
+
   function scrollToCatalogTop() {
     const catalogEl = document.getElementById('catalog');
     if (!catalogEl) return;
     const header = document.querySelector('.site-header, header');
     const offset = header ? header.getBoundingClientRect().height + 8 : 80;
-    window.scrollTo({ top: catalogEl.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+    smartScrollTo(catalogEl.getBoundingClientRect().top + window.scrollY - offset);
   }
 
   function openSeries(id) {
@@ -752,8 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!formCard) return;
     const header = document.querySelector('.site-header, header');
     const offset = header ? header.getBoundingClientRect().height + 12 : 80;
-    window.scrollTo({ top: formCard.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
-    setTimeout(() => document.getElementById('leadName')?.focus({ preventScroll: true }), 600);
+    smartScrollTo(formCard.getBoundingClientRect().top + window.scrollY - offset);
+    setTimeout(() => document.getElementById('leadName')?.focus({ preventScroll: true }), 450);
   }
 
   document.getElementById('drawerQuoteBtn')?.addEventListener('click', goToQuoteForm);
@@ -1356,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
     leadSuccess.querySelector('h3')?.focus({ preventScroll: true });
     leadSuccess.querySelector('[data-action="back-to-catalog"]')?.addEventListener('click', () => {
       showLeadForm();
-      document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+      scrollToCatalogTop();
     });
   }
 
