@@ -75,102 +75,195 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // === 1. CATALOG RENDERING & FILTERING ===
+  // === 1. CATALOG RENDERING: SERIES → MODELS ===
+  const ALL_ROBOTS = (typeof ROBOTS_DATA !== 'undefined') ? ROBOTS_DATA : [];
+  const SERIES = (typeof SERIES_DATA !== 'undefined') ? SERIES_DATA : [];
+  const robotBySlug = (slug) => ALL_ROBOTS.find(r => r.slug === slug);
+  const seriesOfSlug = (slug) => SERIES.find(s => s.models.includes(slug));
+  const seriesModels = (series) => series.models.map(robotBySlug).filter(Boolean);
+  const shortName = (name) => String(name || '').replace(/^(Unitree|PUDU)\s+/i, '');
+  const pluralModels = (n) => {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return `${n} модель`;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} модели`;
+    return `${n} моделей`;
+  };
+
+  let currentSeriesId = null;
+  const seriesViewEl = document.getElementById('seriesView');
+  const catalogToolbarEl = document.querySelector('#catalog .catalog-toolbar');
+  const catalogHeaderEl = document.querySelector('#catalog .section-header');
+  const buyerStepsEl = document.querySelector('#catalog .buyer-steps');
+
+  const ADD_ICON = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>`;
+  const CHEVRON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>`;
+
+  function robotCardHTML(robot) {
+    const specsEntries = Object.entries(robot.specs || {}).slice(0, 4);
+    const configTag = robot.config_label ? `<div class="card-config-tag">${robot.config_label}</div>` : '';
+    return `
+      <article class="robot-card" data-slug="${robot.slug}" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Открыть характеристики ${robot.name}">
+        <div class="robot-card-top">
+          <span class="card-badge">${robot.badge || 'Официальная поставка'}</span>
+          <span class="card-brand">${robot.brand}</span>
+        </div>
+        <div class="robot-card-img-wrap">
+          <img src="${robot.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="${robot.name}" loading="lazy" />
+        </div>
+        <h3 class="robot-card-name">${robot.name}</h3>
+        <p class="robot-card-desc">${robot.desc || robot.full_desc || ''}</p>
+        <div class="specs-mini-grid">
+          ${specsEntries.map(([k, v]) => `
+            <div class="spec-mini-item">
+              <span class="spec-mini-lbl">${k}</span>
+              <span class="spec-mini-val" title="${v}">${v}</span>
+            </div>`).join('')}
+        </div>
+        <div class="robot-card-bottom">
+          <div class="price-block">
+            <div class="price-val">${robot.price_label || 'По запросу'}</div>
+            <div class="price-lease">${robot.price_sub || 'Расчёт с НДС и доставкой по РК'}</div>
+            ${configTag}
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-cart" data-action="add-cart" data-slug="${robot.slug}" aria-label="Добавить ${robot.name} в подборку для КП" title="Добавить в подборку для коммерческого предложения">
+              ${ADD_ICON}<span>В подборку</span>
+            </button>
+          </div>
+        </div>
+        <div class="card-click-hint"><span>Подробнее о модели</span>${CHEVRON}</div>
+      </article>`;
+  }
+
+  function seriesCardHTML(series) {
+    const models = seriesModels(series);
+    if (models.length === 0) return '';
+    // A one-model series behaves like a plain product card (opens the modal directly)
+    if (models.length === 1) return robotCardHTML(models[0]);
+
+    const lead = models[0];
+    const chips = models.map(m => `<span class="series-chip">${shortName(m.name)}</span>`).join('');
+    return `
+      <article class="robot-card series-card" data-series="${series.id}" tabindex="0" role="button" aria-label="Открыть серию ${series.name}: ${pluralModels(models.length)}">
+        <div class="robot-card-top">
+          <span class="card-badge series-badge">Серия · ${pluralModels(models.length)}</span>
+          <span class="card-brand">${series.brand}</span>
+        </div>
+        <div class="robot-card-img-wrap">
+          <img src="${lead.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="${series.name}" loading="lazy" />
+        </div>
+        <h3 class="robot-card-name">${series.name}</h3>
+        <p class="robot-card-desc">${series.tagline || lead.desc || ''}</p>
+        <div class="series-chips" aria-label="Модели серии">${chips}</div>
+        <div class="robot-card-bottom series-card-bottom">
+          <div class="price-block">
+            <div class="price-val">По запросу</div>
+            <div class="price-lease">Цены и комплектации — в КП</div>
+          </div>
+          <span class="btn-series-open">Все модели ${CHEVRON}</span>
+        </div>
+      </article>`;
+  }
+
+  function renderSeriesView() {
+    const series = SERIES.find(s => s.id === currentSeriesId);
+    if (!series) { currentSeriesId = null; return renderCatalog(); }
+    const models = seriesModels(series);
+
+    if (catalogToolbarEl) catalogToolbarEl.hidden = true;
+    if (catalogHeaderEl) catalogHeaderEl.hidden = true;
+    if (buyerStepsEl) buyerStepsEl.hidden = true;
+    if (seriesViewEl) {
+      seriesViewEl.hidden = false;
+      seriesViewEl.innerHTML = `
+        <nav class="series-crumbs" aria-label="Навигация по каталогу">
+          <a href="#catalog" class="series-back" data-action="close-series">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"></path></svg>
+            Все роботы
+          </a>
+          <span aria-hidden="true">/</span>
+          <span>${series.name}</span>
+        </nav>
+        <div class="series-head">
+          <span class="section-tag">${series.brand} · ${pluralModels(models.length)}</span>
+          <h2 class="section-title">${series.name}</h2>
+          ${series.tagline ? `<p class="section-desc">${series.tagline}</p>` : ''}
+        </div>`;
+    }
+    robotsGrid.innerHTML = models.map(robotCardHTML).join('');
+  }
+
   function renderCatalog() {
     if (!robotsGrid) return;
+    if (currentSeriesId) return renderSeriesView();
 
-    let filtered = (typeof ROBOTS_DATA !== 'undefined' ? ROBOTS_DATA : []).filter(r => r.catalog_visible !== false);
+    if (seriesViewEl) { seriesViewEl.hidden = true; seriesViewEl.innerHTML = ''; }
+    if (catalogToolbarEl) catalogToolbarEl.hidden = false;
+    if (catalogHeaderEl) catalogHeaderEl.hidden = false;
+    if (buyerStepsEl) buyerStepsEl.hidden = false;
 
-    // Category filter
-    if (currentCategory !== 'all') {
-      filtered = filtered.filter(item => item.cat === currentCategory);
-    }
+    let list = SERIES.filter(s => seriesModels(s).length > 0);
+    if (currentCategory !== 'all') list = list.filter(s => s.cat === currentCategory);
+    if (currentBrand !== 'all') list = list.filter(s => s.brand.toLowerCase() === currentBrand.toLowerCase());
 
-    // Brand filter
-    if (currentBrand !== 'all') {
-      filtered = filtered.filter(item => item.brand.toLowerCase() === currentBrand.toLowerCase());
-    }
-
-    // Search filter
-    if (currentSearch.trim()) {
-      const q = currentSearch.toLowerCase().trim();
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(q) ||
-        (item.desc && item.desc.toLowerCase().includes(q)) ||
-        (item.full_desc && item.full_desc.toLowerCase().includes(q)) ||
-        (item.config_label && item.config_label.toLowerCase().includes(q))
-      );
-    }
-
-    if (filtered.length === 0) {
+    if (list.length === 0) {
       robotsGrid.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px; opacity: 0.5;">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
-          </svg>
-          <h3 style="color: #fff; margin-bottom: 8px;">Модели не найдены</h3>
-          <p>Попробуйте изменить параметры поиска или сбросить фильтры</p>
-          <button id="resetFiltersBtn" class="btn-secondary" style="margin-top: 16px; padding: 8px 18px;">Сбросить фильтры</button>
-        </div>
-      `;
+        <div class="catalog-empty">
+          <h3>Модели не найдены</h3>
+          <p>Попробуйте выбрать другую категорию</p>
+          <button id="resetFiltersBtn" class="btn-secondary">Показать все</button>
+        </div>`;
       document.getElementById('resetFiltersBtn')?.addEventListener('click', resetAllFilters);
       return;
     }
-
-    robotsGrid.innerHTML = filtered.map(robot => {
-      const specsEntries = Object.entries(robot.specs || {}).slice(0, 4);
-      const configTag = robot.config_label ? `<div class="card-config-tag" style="font-size: 0.72rem; color: var(--accent-mint); margin-top: 2px; font-weight: 600;">${robot.config_label}</div>` : '';
-      return `
-        <article class="robot-card" data-slug="${robot.slug}" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Открыть подробные характеристики ${robot.name}">
-          <div class="robot-card-top">
-            <span class="card-badge">${robot.badge || 'Официальная поставка'}</span>
-            <span class="card-brand">${robot.brand}</span>
-          </div>
-
-          <div class="robot-card-img-wrap">
-            <img src="${robot.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="${robot.name}" loading="lazy" />
-          </div>
-
-          <h3 class="robot-card-name">${robot.name}</h3>
-          <p class="robot-card-desc">${robot.desc || robot.full_desc || ''}</p>
-
-          <div class="specs-mini-grid">
-            ${specsEntries.map(([k, v]) => `
-              <div class="spec-mini-item">
-                <span class="spec-mini-lbl">${k}</span>
-                <span class="spec-mini-val" title="${v}">${v}</span>
-              </div>
-            `).join('')}
-          </div>
-
-          <div class="robot-card-bottom">
-            <div class="price-block">
-              <div class="price-val" style="color: var(--accent-mint); font-family: var(--font-mono); font-weight: 800; font-size: 1.15rem;">${robot.price_label || 'По запросу'}</div>
-              <div class="price-lease" style="font-size: 0.74rem; color: var(--text-muted);">${robot.price_sub || 'Расчёт с НДС и доставкой по РК'}</div>
-              ${configTag}
-            </div>
-            <div class="card-actions">
-              <button class="btn-card-cart" data-action="add-cart" data-slug="${robot.slug}" aria-label="Добавить ${robot.name} в спецификацию КП" title="Добавить в коммерческое предложение">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="12" y1="18" x2="12" y2="12"></line>
-                  <line x1="9" y1="15" x2="15" y2="15"></line>
-                </svg>
-                <span>+ В смету</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="card-click-hint">
-            <span>Подробнее о модели</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
-          </div>
-        </article>
-      `;
-    }).join('');
+    robotsGrid.innerHTML = list.map(seriesCardHTML).join('');
   }
+
+  function scrollToCatalogTop() {
+    const catalogEl = document.getElementById('catalog');
+    if (!catalogEl) return;
+    const header = document.querySelector('.site-header, header');
+    const offset = header ? header.getBoundingClientRect().height + 8 : 80;
+    window.scrollTo({ top: catalogEl.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+  }
+
+  function openSeries(id) {
+    if (!SERIES.some(s => s.id === id)) return;
+    if (location.hash !== `#series-${id}`) {
+      history.pushState({ series: id }, '', `#series-${id}`);
+    }
+    currentSeriesId = id;
+    renderCatalog();
+    scrollToCatalogTop();
+  }
+
+  function closeSeries({ updateUrl = true } = {}) {
+    if (!currentSeriesId) return;
+    currentSeriesId = null;
+    if (updateUrl && location.hash.startsWith('#series-')) {
+      history.replaceState(null, '', '#catalog');
+    }
+    renderCatalog();
+  }
+
+  function syncSeriesFromUrl() {
+    const m = location.hash.match(/^#series-([a-z0-9-]+)$/i);
+    const id = m && SERIES.some(s => s.id === m[1]) ? m[1] : null;
+    if (id === currentSeriesId) return;
+    currentSeriesId = id;
+    renderCatalog();
+    if (id) scrollToCatalogTop();
+  }
+  window.addEventListener('popstate', syncSeriesFromUrl);
+  window.addEventListener('hashchange', syncSeriesFromUrl);
+
+  seriesViewEl?.addEventListener('click', (e) => {
+    const back = e.target.closest('[data-action="close-series"]');
+    if (!back) return;
+    e.preventDefault();
+    closeSeries();
+    scrollToCatalogTop();
+  });
 
   function resetAllFilters() {
     currentCategory = 'all';
@@ -180,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     categoryPills.forEach(p => p.classList.toggle('active', p.dataset.category === 'all'));
     brandBtns.forEach(b => b.classList.toggle('active', b.dataset.brand === 'all'));
+    closeSeries();
     renderCatalog();
   }
 
@@ -189,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
       categoryPills.forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       currentCategory = pill.dataset.category;
+      closeSeries();
       renderCatalog();
     });
   });
@@ -223,7 +318,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. Clicking anywhere on the robot card (photo, title, specs, etc.) opens full modal!
+    // 2. Series card → show every model of the series
+    const seriesCard = e.target.closest('.series-card');
+    if (seriesCard) {
+      openSeries(seriesCard.dataset.series);
+      return;
+    }
+
+    // 3. Clicking anywhere on a model card opens the full modal
     const card = e.target.closest('.robot-card');
     if (card) {
       const slug = card.dataset.slug;
@@ -241,11 +343,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!cat) return;
       currentCategory = cat;
       categoryPills.forEach(p => p.classList.toggle('active', p.dataset.category === cat));
+      closeSeries();
       renderCatalog();
-      const catalogEl = document.getElementById('catalog');
-      if (catalogEl) {
-        catalogEl.scrollIntoView({ behavior: 'smooth' });
-      }
+      scrollToCatalogTop();
     });
   });
 
@@ -255,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = e.target.closest('.robot-card');
       if (card && (e.target === card || !e.target.matches('button, a, input'))) {
         e.preventDefault();
+        if (card.dataset.series) { openSeries(card.dataset.series); return; }
         const slug = card.dataset.slug;
         if (slug) openProductModal(slug, card);
       }
@@ -312,6 +413,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       ` : '';
 
+      const ownSeries = seriesOfSlug(robot.slug);
+      const seriesLinkHtml = (ownSeries && ownSeries.models.length > 1 && currentSeriesId !== ownSeries.id) ? `
+        <button type="button" class="modal-series-link" data-series="${ownSeries.id}">
+          <span>Серия ${ownSeries.name} · все ${pluralModels(ownSeries.models.length)}</span>
+          ${CHEVRON}
+        </button>` : '';
+
       dialogContent.innerHTML = `
         <div class="modal-inner">
           <div class="modal-header">
@@ -331,6 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <img src="${robot.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="${robot.name}" />
             </div>
             <div class="modal-details">
+              ${seriesLinkHtml}
               ${editionsHtml}
 
               <p class="modal-desc">${currentDesc}</p>
@@ -377,22 +486,15 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="m-lease">${currentPriceSub}</div>
             </div>
             <div class="modal-actions">
-              <a href="https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent('Здравствуйте! Интересует робот ' + currentName + ' от ' + CFG.brandName + '. Прошу отправить расчет КП и условия поставки.')}" 
-                 target="_blank" class="btn-secondary" style="padding: 10px 18px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px;">
+              <a href="https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent('Здравствуйте! Интересует робот ' + currentName + ' от ' + CFG.brandName + '. Прошу отправить расчет КП и условия поставки.')}"
+                 target="_blank" rel="noopener" class="btn-secondary modal-wa-btn" aria-label="Спросить про ${robot.name} в WhatsApp">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.983.541 1.836.828 2.801.829l.005-.001c3.182 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.765-5.778-5.765zm9.969 5.768c0 5.518-4.482 10-10 10-1.705 0-3.32-.435-4.735-1.196l-5.265 1.381 1.405-5.132c-.859-1.488-1.355-3.218-1.355-5.053 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/>
                 </svg>
-                WhatsApp
+                <span class="modal-wa-text">WhatsApp</span>
               </a>
-              <button class="btn-primary" style="padding: 10px 22px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px;" id="modalAddCartBtn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="12" y1="18" x2="12" y2="12"></line>
-                  <line x1="9" y1="15" x2="15" y2="15"></line>
-                </svg>
-                + В смету
-              </button>
+              <button type="button" class="btn-secondary modal-add-btn" id="modalAddCartBtn">${ADD_ICON}<span>В подборку</span></button>
+              <button type="button" class="btn-primary modal-quote-btn" id="modalQuoteBtn">Получить КП</button>
             </div>
           </div>
         </div>
@@ -410,20 +512,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
+      const currentCartItem = () => activeEdition ? {
+        slug: robot.slug,
+        customId: `${robot.slug}-${activeEdition.name.toLowerCase().replace(/[^a-zа-я0-9]/gi, '-')}`,
+        name: `${robot.name} (${activeEdition.name})`,
+        price_label: robot.price_label || 'По запросу',
+        image: robot.image,
+        badge: robot.badge
+      } : null;
+
       document.getElementById('modalAddCartBtn')?.addEventListener('click', () => {
-        if (activeEdition) {
-          addToCart(robot.slug, {
-            slug: robot.slug,
-            customId: `${robot.slug}-${activeEdition.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
-            name: `${robot.name} (${activeEdition.name})`,
-            price_label: robot.price_label || 'По запросу',
-            image: robot.image,
-            badge: robot.badge
-          });
-        } else {
-          addToCart(robot.slug);
-        }
+        addToCart(robot.slug, currentCartItem());
         productDialog.close();
+      });
+
+      document.getElementById('modalQuoteBtn')?.addEventListener('click', () => {
+        addToCart(robot.slug, currentCartItem(), { onlyIfMissing: true, silent: true });
+        lastModalTrigger = null; // we navigate away — don't jump back to the card
+        productDialog.close();
+        goToQuoteForm();
+      });
+
+      dialogContent.querySelector('.modal-series-link')?.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.series;
+        lastModalTrigger = null;
+        productDialog.close();
+        openSeries(id);
       });
     }
 
@@ -466,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('orda_cart', JSON.stringify(cart));
   }
 
-  function addToCart(slug, customItem = null) {
+  function addToCart(slug, customItem = null, { onlyIfMissing = false, silent = false } = {}) {
     const robot = (typeof ROBOTS_DATA !== 'undefined' ? ROBOTS_DATA : []).find(r => r.slug === slug);
     if (!robot && !customItem) return;
     
@@ -474,9 +588,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemKey = itemToAdd.customId || itemToAdd.slug;
 
     const existing = cart.find(it => (it.customId || it.slug) === itemKey);
-    if (existing) {
+    if (existing && onlyIfMissing) {
+      // already in the selection — keep quantity as is
+    } else if (existing) {
       existing.quantity = (existing.quantity || 1) + 1;
-      showToast(`«${itemToAdd.name || robot.name}» (количество: ${existing.quantity} шт.)`);
+      if (!silent) showToast(`«${itemToAdd.name || robot.name}» — в подборке ${existing.quantity} шт.`);
     } else {
       cart.push({
         slug: robot ? robot.slug : itemToAdd.slug,
@@ -487,11 +603,12 @@ document.addEventListener('DOMContentLoaded', () => {
         badge: itemToAdd.badge || (robot ? robot.badge : 'Официальная поставка'),
         quantity: 1
       });
-      showToast(`«${itemToAdd.name || robot.name}» добавлена в спецификацию!`);
+      if (!silent) showToast(`«${itemToAdd.name || robot.name}» добавлен в подборку для КП`);
     }
 
     updateCartBadges();
     renderDrawerItems();
+    renderQuoteSelection();
   }
 
   function changeItemQty(key, delta) {
@@ -501,17 +618,19 @@ document.addEventListener('DOMContentLoaded', () => {
     item.quantity = (item.quantity || 1) + delta;
     if (item.quantity <= 0) {
       cart = cart.filter(it => (it.customId || it.slug) !== key);
-      showToast('Позиция удалена из спецификации');
+      showToast('Позиция удалена из подборки');
     }
     updateCartBadges();
     renderDrawerItems();
+    renderQuoteSelection();
   }
 
   function removeFromCart(key) {
     cart = cart.filter(item => (item.customId || item.slug) !== key);
     updateCartBadges();
     renderDrawerItems();
-    showToast('Позиция удалена из спецификации');
+    renderQuoteSelection();
+    showToast('Позиция удалена из подборки');
   }
 
   function renderDrawerItems() {
@@ -520,8 +639,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cart.length === 0) {
       drawerItems.innerHTML = `
         <div style="text-align: center; padding: 40px 10px; color: var(--text-muted);">
-          <p>В вашей спецификации пока нет моделей.</p>
-          <p style="font-size: 0.84rem; margin-top: 8px;">Выберите интересующие модели в каталоге и нажмите <strong>«+ В смету»</strong>.</p>
+          <p>В подборке пока нет моделей.</p>
+          <p style="font-size: 0.84rem; margin-top: 8px;">Откройте серию в каталоге и нажмите <strong>«В подборку»</strong> у нужной модели.</p>
         </div>
       `;
       if (drawerTotalUnits) drawerTotalUnits.textContent = '0 ед.';
@@ -594,13 +713,57 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   cartTriggers.forEach(t => t.addEventListener('click', (e) => openDrawer(e.currentTarget)));
+
+  // === 3b. QUOTE REQUEST FLOW (подборка → форма КП → «что дальше») ===
+  const quoteSelectionEl = document.getElementById('quoteSelection');
+  const leadRobotGroup = document.getElementById('leadRobotGroup');
+
+  function renderQuoteSelection() {
+    if (!quoteSelectionEl) return;
+    if (cart.length === 0) {
+      quoteSelectionEl.hidden = true;
+      quoteSelectionEl.innerHTML = '';
+      if (leadRobotGroup) leadRobotGroup.hidden = false;
+      return;
+    }
+    const total = cart.reduce((sum, it) => sum + (it.quantity || 1), 0);
+    quoteSelectionEl.hidden = false;
+    if (leadRobotGroup) leadRobotGroup.hidden = true;
+    quoteSelectionEl.innerHTML = `
+      <div class="quote-sel-head">
+        <span>Ваша подборка · ${total} ед.</span>
+        <button type="button" class="quote-sel-edit" data-action="edit-selection">Изменить</button>
+      </div>
+      <ul class="quote-sel-list">
+        ${cart.map(it => `<li><img src="${it.image || 'assets/cards/ph-go2-pro-1.webp'}" alt="" /><span>${it.name}</span><b>${it.quantity || 1} шт.</b></li>`).join('')}
+      </ul>`;
+  }
+
+  quoteSelectionEl?.addEventListener('click', (e) => {
+    if (e.target.closest('[data-action="edit-selection"]')) openDrawer(e.target);
+  });
+
+  function goToQuoteForm() {
+    if (cartDrawer?.classList.contains('open')) closeDrawer();
+    showLeadForm();
+    renderQuoteSelection();
+    const contact = document.getElementById('contact');
+    const formCard = document.querySelector('#contact .form-card') || contact;
+    if (!formCard) return;
+    const header = document.querySelector('.site-header, header');
+    const offset = header ? header.getBoundingClientRect().height + 12 : 80;
+    window.scrollTo({ top: formCard.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+    setTimeout(() => document.getElementById('leadName')?.focus({ preventScroll: true }), 600);
+  }
+
+  document.getElementById('drawerQuoteBtn')?.addEventListener('click', goToQuoteForm);
   closeDrawerBtn?.addEventListener('click', (e) => { e.preventDefault(); closeDrawer(); });
   drawerBackdrop?.addEventListener('click', closeDrawer);
 
   // Send Cart via WhatsApp
   document.getElementById('sendCartWhatsAppBtn')?.addEventListener('click', () => {
     if (cart.length === 0) {
-      showToast('Добавьте хотя бы одну модель в спецификацию!');
+      showToast('Добавьте хотя бы одну модель в подборку');
       return;
     }
     const robotLines = cart.map(c => `• ${c.name} — ${c.quantity || 1} шт. (${c.price_label || 'По запросу'})`).join('\n');
@@ -847,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'cleaning-small': {
       name: 'PUDU ET1 (Компактный поломой)',
       desc: 'Идеален для площадей 100–800 м². Горячая мойка 85°C и автоматическая рабочая станция 8-в-1 для автономного слива, сушки и дезинфекции.',
-      image: 'assets/cards/ph-pudu-et1-1.webp',
+      image: 'assets/cards/pudu-et1-official.webp',
       slug: 'pudu-et1',
       spec1: 'до 800 м²/ч',
       spec2: 'Горячая мойка 85°C',
@@ -883,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'horeca-medium': {
       name: 'PUDU BellaBot Pro',
       desc: 'Премиальный робот-официант с мимикой, мультимодальным голосовым диалогом и 4 уровнями подносов с подсветкой.',
-      image: 'assets/cards/ph-pudu-bellabot-1.webp',
+      image: 'assets/cards/pudu-bellabot-official.webp',
       slug: 'pudu-bellabot',
       spec1: 'до 400 заказов/день',
       spec2: '4 независимых лотка с подсветкой',
@@ -1150,8 +1313,53 @@ document.addEventListener('DOMContentLoaded', () => {
     heroCardDetailsBtn.onclick = (e) => openProductModal('go2-pro', e.currentTarget);
   }
 
-  // === 7. LEAD FORM SUBMISSION (ORDA ROBOTICS INTEGRATION) ===
+  // === 7. LEAD FORM SUBMISSION → SUCCESS SCREEN ===
   const leadForm = document.getElementById('leadForm');
+  const leadSuccess = document.getElementById('leadSuccess');
+  const formIntro = document.querySelector('#contact .form-card-intro');
+
+  const NEXT_STEPS = (Array.isArray(CFG.leadNextSteps) && CFG.leadNextSteps.length) ? CFG.leadNextSteps : [
+    `Менеджер свяжется с вами в рабочее время (${CFG.workHours || 'Пн–Пт: 09:00 – 19:00'}) и уточнит задачу`,
+    'Подготовим официальное КП: спецификация, НДС 12%, доставка и пусконаладка по РК',
+    'Согласуем демонстрацию — выезд инженера в Алматы или онлайн-демо для регионов'
+  ];
+
+  function showLeadForm() {
+    if (!leadForm || !leadSuccess) return;
+    leadSuccess.hidden = true;
+    leadForm.hidden = false;
+    if (formIntro) formIntro.hidden = false;
+  }
+
+  function showLeadSuccess({ saved, whatsappUrl, name }) {
+    if (!leadForm || !leadSuccess) return;
+    leadForm.hidden = true;
+    if (formIntro) formIntro.hidden = true;
+    leadSuccess.hidden = false;
+    leadSuccess.innerHTML = `
+      <div class="lead-success-icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"></path></svg>
+      </div>
+      <h3 tabindex="-1">${saved ? 'Заявка принята' : 'Отправьте заявку в WhatsApp'}${name && saved ? ', ' + name : ''}</h3>
+      <p>${saved
+        ? 'Спасибо! Мы получили ваш запрос на коммерческое предложение.'
+        : 'Сервер сейчас недоступен — продублируйте заявку в WhatsApp, мы уже заполнили текст.'}</p>
+      <div class="lead-next-title">Что будет дальше</div>
+      <ol class="lead-next-steps">${NEXT_STEPS.map(t => `<li>${t}</li>`).join('')}</ol>
+      <div class="lead-success-actions">
+        <a href="${whatsappUrl}" target="_blank" rel="noopener" class="${saved ? 'btn-secondary' : 'btn-primary'}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.983.541 1.836.828 2.801.829l.005-.001c3.182 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.765-5.778-5.765zm9.969 5.768c0 5.518-4.482 10-10 10-1.705 0-3.32-.435-4.735-1.196l-5.265 1.381 1.405-5.132c-.859-1.488-1.355-3.218-1.355-5.053 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/></svg>
+          ${saved ? 'Ускорить ответ в WhatsApp' : 'Отправить в WhatsApp'}
+        </a>
+        <button type="button" class="${saved ? 'btn-primary' : 'btn-secondary'}" data-action="back-to-catalog">Вернуться в каталог</button>
+      </div>`;
+    leadSuccess.querySelector('h3')?.focus({ preventScroll: true });
+    leadSuccess.querySelector('[data-action="back-to-catalog"]')?.addEventListener('click', () => {
+      showLeadForm();
+      document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
   leadForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -1159,78 +1367,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const company = document.getElementById('leadCompany')?.value.trim() || '';
     const phone = document.getElementById('leadPhone')?.value.trim() || '';
     const city = document.getElementById('leadCity')?.value || CFG.cityPrimary;
-    const robot = document.getElementById('leadRobot')?.value || 'Не выбрано';
+    const robotSelect = document.getElementById('leadRobot');
+    const robot = cart.length > 0
+      ? cart.map(c => c.name).join(', ')
+      : (robotSelect?.value || 'Не выбрано');
     const messenger = document.querySelector('input[name="messenger"]:checked')?.value || 'WhatsApp';
 
-    let text = `Заявка с сайта ${CFG.brandName} (${CFG.brandShort}):\nИмя: ${name}`;
-    if (company) text += `\nКомпания: ${company}`;
-    text += `\nТелефон: ${phone}\nГород поставки: ${city}\nИнтересует: ${robot}\nУдобная связь: ${messenger}`;
-
+    let text = `Заявка на КП с сайта ${CFG.brandName} (${CFG.brandShort}):
+Имя: ${name}`;
+    if (company) text += `
+Компания: ${company}`;
+    text += `
+Телефон: ${phone}
+Город поставки: ${city}
+Удобная связь: ${messenger}`;
     if (cart.length > 0) {
-      text += `\n\nВыбранные модели в спецификации:\n` + cart.map(c => `• ${c.name} — ${c.quantity || 1} шт. (${c.price_label || 'По запросу'})`).join('\n');
-    }
+      text += `
 
+Подборка:
+` + cart.map(c => `• ${c.name} — ${c.quantity || 1} шт.`).join('\n');
+    } else {
+      text += `
+Интересует: ${robot}`;
+    }
     const whatsappUrl = `https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(text)}`;
 
     const submitBtn = leadForm.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn ? submitBtn.textContent : '';
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Отправка...';
+      submitBtn.textContent = 'Отправляем...';
     }
 
     const leadPayload = {
-      name,
-      company,
-      phone,
-      city,
-      robot,
-      messenger,
-      cart: cart.map(item => ({ slug: item.slug, name: item.name, quantity: item.quantity || 1, price: item.price_label })),
+      name, company, phone, city, robot, messenger,
+      robots: cart.length > 0 ? cart.map(c => `${c.name} × ${c.quantity || 1}`) : [robot],
+      cart: cart.map(item => ({ slug: item.slug, name: item.name, quantity: item.quantity || 1 })),
+      source: 'website_quote_form',
       sourceUrl: window.location.href,
       createdAt: new Date().toISOString()
     };
 
-    if (window.location.protocol === 'file:') {
-      showToast('Заявка сформирована! Перенаправляем в WhatsApp...');
+    let saved = false;
+    if (window.location.protocol !== 'file:') {
+      try {
+        const response = await fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(leadPayload)
+        });
+        saved = response.ok;
+      } catch (_err) {
+        saved = false;
+      }
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
+    }
+
+    if (saved) {
       leadForm.reset();
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
-      }
-      window.open(whatsappUrl, '_blank');
-      return;
+      cart = [];
+      updateCartBadges();
+      renderDrawerItems();
+      renderQuoteSelection();
     }
-
-    let isSuccess = false;
-    try {
-      const response = await fetch('/api/leads', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(leadPayload)
-      });
-      if (response.ok) isSuccess = true;
-    } catch (_err) {
-      isSuccess = false;
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
-      }
-    }
-
-    if (isSuccess) {
-      showToast('Заявка зафиксирована в CRM! Открываем WhatsApp...');
-    } else {
-      showToast('Открываем WhatsApp с заполненной заявкой...');
-    }
-    leadForm.reset();
-    setTimeout(() => {
-      window.open(whatsappUrl, '_blank');
-    }, 400);
+    showLeadSuccess({ saved, whatsappUrl, name });
   });
 
   // === 8. TOAST NOTIFICATIONS HELPER ===
@@ -1268,4 +1472,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateCartBadges();
   renderCatalog();
+  renderQuoteSelection();
+  syncSeriesFromUrl();
 });

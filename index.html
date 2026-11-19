@@ -18,8 +18,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <script src="config/site.js?v=2.6"></script>
-  <link rel="stylesheet" href="css/style.css?v=2.6" />
+  <script src="config/site.js?v=3.0"></script>
+  <link rel="stylesheet" href="css/style.css?v=3.0" />
 </head>
 <body>
 
@@ -314,6 +314,14 @@
             </div>
           </div>
         </div>
+
+        <div class="series-view" id="seriesView" hidden></div>
+
+        <ol class="buyer-steps" aria-label="Как заказать робота">
+          <li><span class="step-num">1</span><span><strong>Выберите серию</strong><span class="step-more"> и модель под задачу</span></span></li>
+          <li><span class="step-num">2</span><span><strong>Добавьте в подборку</strong><span class="step-more"> нужные модели и количество</span></span></li>
+          <li><span class="step-num">3</span><span><strong>Получите КП</strong><span class="step-more"> с НДС 12%, доставкой и демонстрацией</span></span></li>
+        </ol>
 
         <div class="robots-grid" id="robotsGrid">
           <!-- Populated dynamically by app.js from robots-data.js -->
@@ -650,7 +658,7 @@
             <div class="cfg-result-badge">РЕКОМЕНДОВАННОЕ РЕШЕНИЕ</div>
             <div class="cfg-result-content">
               <div class="cfg-result-img-box">
-                <img id="cfgResultImg" src="assets/cards/ph-pudu-et1-1.webp" alt="PUDU ET1" />
+                <img id="cfgResultImg" src="assets/cards/pudu-et1-official.webp" alt="PUDU ET1" />
               </div>
               <div class="cfg-result-info">
                 <h3 id="cfgResultTitle">PUDU ET1 (Компактный поломой)</h3>
@@ -685,7 +693,7 @@
                       <line x1="12" y1="18" x2="12" y2="12"></line>
                       <line x1="9" y1="15" x2="15" y2="15"></line>
                     </svg>
-                    <span>Добавить в спецификацию КП</span>
+                    <span>Добавить в подборку для КП</span>
                   </button>
                 </div>
               </div>
@@ -757,7 +765,7 @@
 
           <div class="rent-card">
             <div class="rent-img-wrap">
-              <img src="assets/cards/ph-pudu-bellabot-1.webp" alt="PUDU BellaBot Pro" loading="lazy" />
+              <img src="assets/cards/pudu-bellabot-official.webp" alt="PUDU BellaBot Pro" loading="lazy" />
             </div>
             <div class="rent-card-header">
               <div class="rent-title-row">
@@ -870,10 +878,14 @@
         </div>
 
         <div class="form-card">
-          <h3>Заявка на расчет КП и тест-драйв</h3>
-          <p>Заполните форму, и мы подготовим смету с учетом доставки и запуска в вашем регионе.</p>
+          <div class="form-card-intro">
+            <h3>Получить КП и демонстрацию</h3>
+            <p>Оставьте контакты — подготовим коммерческое предложение с НДС 12%, доставкой и запуском в вашем регионе.</p>
+          </div>
 
           <form id="leadForm" class="lead-form">
+            <div class="quote-selection" id="quoteSelection" hidden></div>
+
             <div class="form-row">
               <div class="form-group">
                 <label for="leadName">Ваше имя *</label>
@@ -905,7 +917,7 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="leadRobotGroup">
               <label for="leadRobot">Какая модель или задача интересует?</label>
               <select id="leadRobot">
                 <option value="Unitree Go2 Pro (Робопес)">Unitree Go2 Pro (Робопес)</option>
@@ -935,9 +947,12 @@
             </div>
 
             <button type="submit" class="btn-primary" style="justify-content: center; width: 100%; padding: 14px; font-size: 1rem;">
-              Отправить заявку инженеру ORDA ROBOTICS
+              Получить КП
             </button>
+            <p class="form-privacy-note">Нажимая кнопку, вы соглашаетесь на обработку контактных данных для подготовки КП.</p>
           </form>
+
+          <div class="lead-success" id="leadSuccess" hidden aria-live="polite"></div>
         </div>
       </div>
     </section>
@@ -1015,7 +1030,7 @@
     <div class="drawer-header">
       <div>
         <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 4px;">
-          <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Спецификация для расчёта КП</h3>
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Подборка для КП</h3>
           <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px; background: rgba(75, 227, 160, 0.15); color: var(--accent-mint); font-weight: 700; white-space: nowrap; flex-shrink: 0;">НДС 12%</span>
         </div>
         <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.35;">КП (коммерческое предложение) — официальный расчет стоимости со спецификацией, гарантией и условиями лизинга в РК</p>
@@ -1034,11 +1049,14 @@
         <span>Всего позиций в запросе:</span>
         <span id="drawerTotalUnits" style="color: var(--accent-mint); font-family: var(--font-mono); font-weight: 800; font-size: 1.1rem;">0 ед.</span>
       </div>
-      <button class="btn-primary" id="sendCartWhatsAppBtn" style="width: 100%; justify-content: center; padding: 12px;">
+      <button class="btn-primary" id="drawerQuoteBtn" type="button" style="width: 100%; justify-content: center; padding: 12px; margin-bottom: 8px;">
+        Оформить запрос КП
+      </button>
+      <button class="btn-secondary" id="sendCartWhatsAppBtn" style="width: 100%; justify-content: center; padding: 12px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
         </svg>
-        Запросить официальное КП в WhatsApp
+        Отправить подборку в WhatsApp
       </button>
     </div>
   </aside>
@@ -1055,7 +1073,8 @@
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
   <!-- SCRIPTS -->
-  <script src="js/robots-data.js?v=2.5"></script>
-  <script src="js/app.js?v=2.5"></script>
+  <script src="js/robots-data.js?v=3.0"></script>
+  <script src="js/series-data.js?v=3.0"></script>
+  <script src="js/app.js?v=3.0"></script>
 </body>
 </html>

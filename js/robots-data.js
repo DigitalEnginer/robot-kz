@@ -30,7 +30,7 @@ const ROBOTS_DATA = [
   },
   {
     "slug": "go2-pro",
-    "name": "Unitree Go2 Series",
+    "name": "Unitree Go2 Pro",
     "desc": "Флагманская серия робособак Unitree: от базовой Air до умной Pro с GPT-ИИ и исследовательской EDU с ROS2.",
     "brand": "Unitree",
     "cat": "quadruped",
@@ -965,7 +965,7 @@ const ROBOTS_DATA = [
     "cat": "cleaning",
     "cat_name": "Клининговые роботы",
     "href": "/p/pudu-bg1",
-    "image": "assets/cards/pudu-bg1.webp",
+    "image": "assets/cards/pudu-bg1-official.webp",
     "price": "По запросу",
     "specs": {
       "ТИП": "Тяжелая поломоечная машина",
@@ -989,7 +989,7 @@ const ROBOTS_DATA = [
     "cat": "delivery",
     "cat_name": "Роботы доставки и сервиса",
     "href": "/p/pudu-bellabot",
-    "image": "assets/cards/ph-pudu-bellabot-1.webp",
+    "image": "assets/cards/pudu-bellabot-official.webp",
     "price": "По запросу",
     "specs": {
       "Производитель": "PUDU",
@@ -1163,7 +1163,7 @@ const ROBOTS_DATA = [
     "brand": "PUDU",
     "cat": "cleaning",
     "cat_name": "Клининговые роботы",
-    "image": "assets/cards/ph-pudu-sh1-2.webp",
+    "image": "assets/cards/pudu-et1-official.webp",
     "badge": "Новинка 2026",
     "price_label": "По запросу",
     "price_sub": "Расчёт с НДС и доставкой по РК",
