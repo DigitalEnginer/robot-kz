@@ -759,7 +759,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const header = document.querySelector('.site-header, header');
     const offset = header ? header.getBoundingClientRect().height + 12 : 80;
     smartScrollTo(formCard.getBoundingClientRect().top + window.scrollY - offset);
-    setTimeout(() => document.getElementById('leadName')?.focus({ preventScroll: true }), 450);
+    // Late layout shifts (fonts, lazy images) can move the form after a long jump — re-align once settled
+    [200, 650].forEach((ms) => setTimeout(() => {
+      const drift = formCard.getBoundingClientRect().top - offset;
+      if (Math.abs(drift) > 40) window.scrollTo({ top: window.scrollY + drift, behavior: 'instant' });
+    }, ms));
+    setTimeout(() => document.getElementById('leadName')?.focus({ preventScroll: true }), 700);
   }
 
   document.getElementById('drawerQuoteBtn')?.addEventListener('click', goToQuoteForm);
