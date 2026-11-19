@@ -53,6 +53,85 @@ const LEADS_FILE = ROOT_LEADS_FILE;
 const CRM_FILE = path.join(__dirname, 'crm.html');
 const START_TIME = Date.now();
 
+// === CRM ACCESS CONTROL (HTTP Basic Auth) ===
+// Логин/пароль задаются переменными окружения CRM_USER / CRM_PASSWORD.
+// Если CRM_PASSWORD не задан, CRM и API заявок полностью закрыты (fail-closed).
+const CRM_USER = process.env.CRM_USER || 'admin';
+const CRM_PASSWORD = process.env.CRM_PASSWORD || '';
+const CRM_REALM = 'ORDA CRM';
+
+// Пути, которые никогда не отдаются как статика (данные заявок, исходники сервера)
+const BLOCKED_STATIC_PREFIXES = ['data/', 'server/', 'api/', 'scripts/', 'tests/', 'docs/', 'node_modules/', '.git/'];
+const BLOCKED_STATIC_FILES = ['package.json', 'package-lock.json', 'vercel.json', '.vercelignore', '.gitignore'];
+
+function safeEqual(a, b) {
+  const ha = crypto.createHash('sha256').update(String(a)).digest();
+  const hb = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
+
+// Счётчик неудачных попыток входа по IP (защита от перебора пароля)
+const authFailMap = new Map();
+const AUTH_FAIL_WINDOW_MS = 15 * 60 * 1000;
+const AUTH_MAX_FAILS = 10;
+
+function isAuthBlocked(ip) {
+  const rec = authFailMap.get(ip);
+  if (!rec) return false;
+  if (Date.now() > rec.resetTime) { authFailMap.delete(ip); return false; }
+  return rec.count >= AUTH_MAX_FAILS;
+}
+
+function registerAuthFail(ip) {
+  const now = Date.now();
+  const rec = authFailMap.get(ip);
+  if (!rec || now > rec.resetTime) {
+    authFailMap.set(ip, { count: 1, resetTime: now + AUTH_FAIL_WINDOW_MS });
+  } else {
+    rec.count += 1;
+  }
+}
+
+/**
+ * Проверяет Basic Auth. Возвращает true, если доступ разрешён;
+ * иначе сам отправляет ответ 401/429/503 и возвращает false.
+ */
+function requireCrmAuth(req, res, clientIp) {
+  if (!CRM_PASSWORD) {
+    sendError(res, 503, 'CRM отключена: на сервере не задана переменная окружения CRM_PASSWORD');
+    return false;
+  }
+  if (isAuthBlocked(clientIp)) {
+    sendError(res, 429, 'Слишком много неудачных попыток входа. Попробуйте через 15 минут.');
+    return false;
+  }
+
+  const header = req.headers.authorization || '';
+  if (header.startsWith('Basic ')) {
+    const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
+    const sep = decoded.indexOf(':');
+    const user = sep === -1 ? decoded : decoded.slice(0, sep);
+    const pass = sep === -1 ? '' : decoded.slice(sep + 1);
+    // Обе проверки выполняются всегда, чтобы не давать подсказок по времени ответа
+    const userOk = safeEqual(user, CRM_USER);
+    const passOk = safeEqual(pass, CRM_PASSWORD);
+    if (userOk && passOk) {
+      authFailMap.delete(clientIp);
+      return true;
+    }
+    registerAuthFail(clientIp);
+  }
+
+  applySecurityHeaders(res);
+  res.writeHead(401, {
+    'WWW-Authenticate': `Basic realm="${CRM_REALM}", charset="UTF-8"`,
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store'
+  });
+  res.end(JSON.stringify({ success: false, error: 'Требуется авторизация', statusCode: 401 }));
+  return false;
+}
+
 // Allowed lead statuses in the sales pipeline
 const VALID_STATUSES = [
   'Новый',
@@ -328,6 +407,17 @@ async function serveStaticFile(req, res, pathname) {
     safeRelPath = safeRelPath.slice(1);
   }
 
+  // Служебные файлы и данные заявок не раздаются как статика
+  const relPosix = safeRelPath.split(path.sep).join('/').toLowerCase();
+  if (
+    BLOCKED_STATIC_PREFIXES.some(p => relPosix === p.slice(0, -1) || relPosix.startsWith(p)) ||
+    BLOCKED_STATIC_FILES.includes(relPosix) ||
+    relPosix.split('/').some(seg => seg.startsWith('.'))
+  ) {
+    sendError(res, 404, `Файл не найден: ${targetPath}`);
+    return;
+  }
+
   let filePath = path.join(ROOT_DIR, safeRelPath);
 
   // Verification that target is strictly inside project root
@@ -571,6 +661,8 @@ async function handleRequest(req, res) {
     // 4. GET /api/leads — Read all leads (CRM listing)
     // --------------------------------------------------------------------------
     if (pathname === '/api/leads' && method === 'GET') {
+      if (!requireCrmAuth(req, res, clientIp)) return;
+      res.setHeader('Cache-Control', 'no-store');
       const leads = await readLeads();
 
       let filtered = [...leads];
@@ -604,6 +696,8 @@ async function handleRequest(req, res) {
     // --------------------------------------------------------------------------
     const statusMatch = pathname.match(/^\/api\/leads\/([a-zA-Z0-9_-]+)\/status$/);
     if (statusMatch && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+      if (!requireCrmAuth(req, res, clientIp)) return;
+      res.setHeader('Cache-Control', 'no-store');
       const leadId = statusMatch[1];
       const body = await parseJSONBody(req);
       const newStatus = String(body.status || '').trim();
@@ -667,11 +761,16 @@ async function handleRequest(req, res) {
     // --------------------------------------------------------------------------
     // 7. GET /crm or /admin — Mini CRM Web Interface
     // --------------------------------------------------------------------------
-    if ((pathname === '/crm' || pathname === '/admin') && method === 'GET') {
+    if ((pathname === '/crm' || pathname === '/admin' || pathname === '/crm.html') && method === 'GET') {
+      if (!requireCrmAuth(req, res, clientIp)) return;
       try {
         const content = await fsp.readFile(CRM_FILE, 'utf8');
         applySecurityHeaders(res);
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'X-Robots-Tag': 'noindex, nofollow'
+        });
         res.end(content);
         return;
       } catch (err) {
@@ -727,6 +826,11 @@ if (require.main === module) {
     console.log(`[API] Health:      http://localhost:${PORT}/api/health`);
     console.log(`[API] Robots:      http://localhost:${PORT}/api/robots`);
     console.log(`[DATA] Leads DB:   ${LEADS_FILE}`);
+    if (!CRM_PASSWORD) {
+      console.log('[AUTH] ВНИМАНИЕ: CRM_PASSWORD не задан — /crm и API заявок закрыты (503).');
+    } else {
+      console.log(`[AUTH] CRM защищена паролем (логин: ${CRM_USER})`);
+    }
     console.log('============================================================');
   });
 

@@ -265,6 +265,23 @@ robot-kz/
 
 ## 4. Запуск и эксплуатация
 
+### Доступ к CRM (пароль)
+Панель `/crm` (`/admin`), `GET /api/leads` и `POST /api/leads/:id/status` закрыты HTTP Basic Auth.
+Публичными остаются только `POST /api/leads` (форма на сайте), `/api/robots`, `/api/health` и `/api/whatsapp/link`.
+
+| Переменная | Назначение | По умолчанию |
+| :--- | :--- | :--- |
+| `CRM_PASSWORD` | Пароль менеджера. **Без неё CRM и API заявок отвечают 503** | — |
+| `CRM_USER` | Логин | `admin` |
+
+```bash
+# Локально (PowerShell: $env:CRM_PASSWORD="..."; npm start)
+CRM_PASSWORD="длинный-случайный-пароль" npm start
+```
+
+На Vercel: Project → Settings → Environment Variables → `CRM_PASSWORD` (Production), затем Redeploy.
+После 10 неверных попыток с одного IP вход блокируется на 15 минут. Файлы `data/`, `server/`, `package.json` и т.п. не раздаются как статика.
+
 ### Требования к окружению
 - **Node.js**: v18.0.0 или новее (проверено на Node.js v25.5.0).
 - Операционная система: Linux (Ubuntu 22.04+), Windows 10/11, macOS.

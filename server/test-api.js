@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * XBOT Robotics Kazakhstan — Automated API Test Suite
+ * ORDA ROBOTICS — Automated API Test Suite
  * ==============================================================================
  * Comprehensive integration tests for all REST endpoints and static serving.
  * Runs against the live or local Node.js server.
@@ -11,6 +11,11 @@ const http = require('http');
 
 const TEST_PORT = process.env.TEST_PORT || 3000;
 const BASE_URL = `http://127.0.0.1:${TEST_PORT}`;
+
+// CRM credentials: берутся из окружения, иначе выставляются тестовые для временного сервера
+if (!process.env.CRM_PASSWORD) process.env.CRM_PASSWORD = 'test-crm-password';
+const CRM_AUTH = 'Basic ' + Buffer.from(`${process.env.CRM_USER || 'admin'}:${process.env.CRM_PASSWORD}`).toString('base64');
+const AUTH = { headers: { Authorization: CRM_AUTH } };
 
 let passedCount = 0;
 let failedCount = 0;
@@ -79,7 +84,7 @@ async function runTests() {
     const healthRes = await request('/api/health');
     assert(healthRes.status === 200, 'GET /api/health returns HTTP 200', `Got ${healthRes.status}`);
     assert(healthRes.json && healthRes.json.status === 'ok', 'Health status is "ok"');
-    assert(healthRes.json?.service?.includes('XBOT'), 'Service name is correctly reported');
+    assert(healthRes.json?.service?.includes('ORDA'), 'Service name is correctly reported');
     assert(typeof healthRes.json?.uptimeSeconds === 'number', 'Uptime is returned as number');
     assert(typeof healthRes.json?.stats?.totalLeads === 'number', 'Total leads statistic is present');
 
@@ -100,7 +105,7 @@ async function runTests() {
 
     // Test 2c: Filter by Slug
     const slugRes = await request('/api/robots?slug=go2-pro');
-    assert(slugRes.status === 200 && slugRes.json?.robot?.name === 'Unitree Go2 Pro', 'GET /api/robots?slug=go2-pro returns single model');
+    assert(slugRes.status === 200 && slugRes.json?.robot?.slug === 'go2-pro', 'GET /api/robots?slug=go2-pro returns single model');
 
     // --------------------------------------------------------------------------
     // Test 3: POST /api/leads & Validation
@@ -139,14 +144,22 @@ async function runTests() {
     // Test 4: GET /api/leads & Status Update
     // --------------------------------------------------------------------------
     console.log('\n[SUITE] Suite 4: CRM Management & Status Update');
-    const leadsListRes = await request('/api/leads');
+    const noAuthRes = await request('/api/leads');
+    assert(noAuthRes.status === 401, 'GET /api/leads without credentials returns HTTP 401');
+    assert(/^Basic/.test(noAuthRes.headers['www-authenticate'] || ''), '401 response carries WWW-Authenticate: Basic');
+    const badAuthRes = await request('/api/leads', { headers: { Authorization: 'Basic ' + Buffer.from('admin:wrong').toString('base64') } });
+    assert(badAuthRes.status === 401, 'GET /api/leads with wrong password returns HTTP 401');
+    const noAuthStatusRes = await request(`/api/leads/${createdLeadId}/status`, { method: 'POST' }, { status: 'В работе' });
+    assert(noAuthStatusRes.status === 401, 'POST /api/leads/:id/status without credentials returns HTTP 401');
+
+    const leadsListRes = await request('/api/leads', AUTH);
     assert(leadsListRes.status === 200, 'GET /api/leads returns HTTP 200');
     assert(Array.isArray(leadsListRes.json?.leads), 'Returns array of leads');
     const foundCreated = leadsListRes.json?.leads?.some(l => l.id === createdLeadId);
     assert(foundCreated, `Created lead ${createdLeadId} is present in CRM leads list`);
 
     // Update status to "Тест-драйв назначен"
-    const updateRes = await request(`/api/leads/${createdLeadId}/status`, { method: 'POST' }, {
+    const updateRes = await request(`/api/leads/${createdLeadId}/status`, { method: 'POST', ...AUTH }, {
       status: 'Тест-драйв назначен',
       comment: 'Тест-драйв запланирован на 10 ноября в Астане'
     });
@@ -154,7 +167,7 @@ async function runTests() {
     assert(updateRes.json?.lead?.status === 'Тест-драйв назначен', 'Lead status successfully updated to "Тест-драйв назначен"');
 
     // Invalid status test
-    const invalidStatusRes = await request(`/api/leads/${createdLeadId}/status`, { method: 'POST' }, {
+    const invalidStatusRes = await request(`/api/leads/${createdLeadId}/status`, { method: 'POST', ...AUTH }, {
       status: 'КастомныйНевалидныйСтатус'
     });
     assert(invalidStatusRes.status === 400, 'Rejects invalid status with HTTP 400');
@@ -188,12 +201,20 @@ async function runTests() {
     const rootRes = await request('/');
     assert(rootRes.status === 200, 'GET / returns HTTP 200');
     assert(rootRes.headers['content-type']?.includes('text/html'), 'Content-Type for / is text/html');
-    assert(rootRes.rawBody?.includes('XBOT'), 'index.html contains XBOT branding');
+    assert(rootRes.rawBody?.includes('ORDA'), 'index.html contains ORDA branding');
 
     // CRM Dashboard
-    const crmRes = await request('/crm');
-    assert(crmRes.status === 200, 'GET /crm returns HTTP 200');
-    assert(crmRes.rawBody?.includes('XBOT CRM'), 'CRM dashboard renders properly');
+    const crmNoAuth = await request('/crm');
+    assert(crmNoAuth.status === 401, 'GET /crm without credentials returns HTTP 401');
+    const crmRes = await request('/crm', AUTH);
+    assert(crmRes.status === 200, 'GET /crm with credentials returns HTTP 200');
+    assert(crmRes.rawBody?.includes('CRM'), 'CRM dashboard renders properly');
+
+    // Lead data & server sources must not be reachable as static files
+    for (const p of ['/data/leads.json', '/server/data/leads.json', '/server/crm.html', '/server/server.js', '/package.json']) {
+      const r = await request(p);
+      assert(r.status === 404, `Static access to ${p} is blocked (HTTP 404)`, `got ${r.status}`);
+    }
 
     // PDF Catalog
     const pdfRes = await request('/catalog_pudu_unitree_extended.pdf');

@@ -1,0 +1,12 @@
+*.pptx
+*.mp4
+*.pdf
+assets/images/pudu/*.mp4
+tests/
+docs/
+.gemini/
+data/
+server/data/
+server/test-api.js
+server/README.md
+scripts/

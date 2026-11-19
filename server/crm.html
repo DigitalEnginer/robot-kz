@@ -541,7 +541,11 @@
 
     async function loadLeads() {
       try {
-        const res = await fetch('/api/leads');
+        const res = await fetch('/api/leads', { credentials: 'same-origin', cache: 'no-store' });
+        if (res.status === 401) {
+          tableBody.innerHTML = `<tr><td colspan="8" class="empty-state" style="color: #ef4444;">Сессия истекла. Обновите страницу и войдите снова.</td></tr>`;
+          return;
+        }
         const data = await res.json();
         allLeads = data.leads || [];
         updateKPIs();
@@ -651,8 +655,13 @@
         const res = await fetch(`/api/leads/${id}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
           body: JSON.stringify({ status: newStatus })
         });
+        if (res.status === 401) {
+          showToast('Сессия истекла — обновите страницу и войдите снова');
+          return;
+        }
         const result = await res.json();
         if (result.success) {
           showToast(`Статус лида ${id.slice(-6)} изменён на "${newStatus}"`);
