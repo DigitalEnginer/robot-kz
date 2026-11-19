@@ -282,6 +282,27 @@ CRM_PASSWORD="длинный-случайный-пароль" npm start
 На Vercel: Project → Settings → Environment Variables → `CRM_PASSWORD` (Production), затем Redeploy.
 После 10 неверных попыток с одного IP вход блокируется на 15 минут. Файлы `data/`, `server/`, `package.json` и т.п. не раздаются как статика.
 
+### Хранение заявок (Supabase) и уведомления (Telegram)
+Код хранилища — `server/lead-store.js`. Если задан `SUPABASE_SERVICE_ROLE_KEY`, заявки пишутся в таблицу
+`public.leads` проекта Supabase **ORDA Robotics** (`vjwloufzaecnzdmpakez`, Франкфурт). Без ключа сервер
+работает как раньше — с файлом `data/leads.json` (на Vercel такой файл временный и теряется).
+Если Supabase недоступен, заявка сохраняется в файл, чтобы не потерять её совсем.
+
+| Переменная | Назначение |
+| :--- | :--- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Секретный ключ Supabase: Project Settings → API Keys → `service_role` / Secret key. **Только на сервере** |
+| `SUPABASE_URL` | Необязательно, по умолчанию `https://vjwloufzaecnzdmpakez.supabase.co` |
+| `TELEGRAM_BOT_TOKEN` | Токен бота от @BotFather |
+| `TELEGRAM_CHAT_ID` | ID чата/группы, куда слать заявки |
+
+Таблица закрыта RLS: публичным ключом её нельзя ни прочитать, ни записать — доступ только у сервера.
+`GET /api/health` показывает `storage` (`supabase`/`file`) и `telegram` (`true`/`false`).
+Тест хранилища и Telegram на имитации обоих сервисов: `node server/test-storage.js`.
+
+**Как получить TELEGRAM_CHAT_ID:** напишите своему боту любое сообщение (или добавьте бота в группу менеджеров
+и напишите там), затем откройте `https://api.telegram.org/bot<ТОКЕН>/getUpdates` — число в `"chat":{"id": ...}`
+и есть ID (у групп оно начинается с `-100`).
+
 ### Требования к окружению
 - **Node.js**: v18.0.0 или новее (проверено на Node.js v25.5.0).
 - Операционная система: Linux (Ubuntu 22.04+), Windows 10/11, macOS.

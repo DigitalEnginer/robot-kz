@@ -276,6 +276,10 @@ async function processWriteQueue() {
   }
 }
 
+// === LEAD STORE (Supabase when configured, JSON file otherwise) + Telegram ===
+const { createLeadStore } = require('./lead-store.js');
+const leadStore = createLeadStore({ read: readLeads, write: writeLeadsSafely });
+
 // === ROBOTS CATALOG LOADER ===
 function loadRobotsCatalog() {
   try {
@@ -519,7 +523,7 @@ async function handleRequest(req, res) {
     // 1. GET /api/health — Health check
     // --------------------------------------------------------------------------
     if (pathname === '/api/health' && method === 'GET') {
-      const leads = await readLeads();
+      const leadStats = await leadStore.stats();
       const robots = loadRobotsCatalog();
       const mem = process.memoryUsage();
 
@@ -533,9 +537,11 @@ async function handleRequest(req, res) {
         timestamp: new Date().toISOString(),
         almatyTime: new Date().toLocaleString('ru-RU', { timeZone: 'Asia/Almaty' }),
         memoryUsageMB: +(mem.rss / 1024 / 1024).toFixed(2),
+        storage: leadStore.mode(),
+        telegram: leadStore.telegram(),
         stats: {
-          totalLeads: leads.length,
-          newLeads: leads.filter(l => l.status === 'Новый').length,
+          totalLeads: leadStats.totalLeads,
+          newLeads: leadStats.newLeads,
           activeRobots: robots.length
         }
       });
@@ -612,22 +618,23 @@ async function handleRequest(req, res) {
         return;
       }
 
-      const leads = await readLeads();
       const leadId = `lead_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
       const nowIso = new Date().toISOString();
 
       const newLead = {
         id: leadId,
-        name: name,
+        name: name.slice(0, 200),
         phone: formatKazakhstanPhone(rawPhone),
         rawPhone: phoneClean,
-        company: String(body.company || '').trim() || 'Частное лицо',
-        city: String(body.city || 'Алматы').trim(),
-        robots: body.robots || (body.robot ? [body.robot] : []),
-        contactMethod: String(body.contactMethod || body.messenger || 'WhatsApp').trim(),
-        budget: String(body.budget || '').trim() || 'По запросу',
-        comment: String(body.comment || body.notes || '').trim(),
-        source: String(body.source || 'website_form').trim(),
+        company: String(body.company || '').trim().slice(0, 200) || 'Частное лицо',
+        city: String(body.city || 'Алматы').trim().slice(0, 100),
+        robots: (Array.isArray(body.robots) ? body.robots : (body.robots ? [body.robots] : (body.robot ? [body.robot] : [])))
+          .slice(0, 50).map(r => (typeof r === 'object' && r !== null) ? r : String(r).slice(0, 300)),
+        contactMethod: String(body.contactMethod || body.messenger || 'WhatsApp').trim().slice(0, 50),
+        budget: String(body.budget || '').trim().slice(0, 100) || 'По запросу',
+        comment: String(body.comment || body.notes || '').trim().slice(0, 2000),
+        source: String(body.source || 'website_form').trim().slice(0, 100),
+        sourceUrl: String(body.sourceUrl || '').trim().slice(0, 500),
         status: 'Новый',
         ip: clientIp,
         userAgent: req.headers['user-agent'] || 'unknown',
@@ -635,19 +642,20 @@ async function handleRequest(req, res) {
         updatedAt: nowIso
       };
 
-      leads.unshift(newLead);
-      await writeLeadsSafely(leads);
+      const { lead: savedLead, storage } = await leadStore.create(newLead);
+      // Awaited on purpose: serverless functions may be frozen right after the response
+      const telegram = await leadStore.notify(savedLead, SITE_CONFIG.brandName);
 
       // Generate manager WhatsApp notification link
       const waMessage = formatWhatsAppLeadMessage(newLead);
       const managerWaLink = generateWhatsAppLink(DEFAULT_MANAGER_PHONE, waMessage);
 
-      console.log(`[Lead Created] ID: ${leadId} | Client: ${name} (${newLead.phone}) | City: ${newLead.city}`);
+      console.log(`[Lead Created] ID: ${leadId} | storage=${storage} | telegram=${telegram.sent} | City: ${newLead.city}`);
 
       sendJSON(res, 201, {
         success: true,
         message: `Заявка успешно зарегистрирована в системе ${SITE_CONFIG.brandName}`,
-        lead: newLead,
+        lead: { id: savedLead.id, status: savedLead.status, createdAt: savedLead.createdAt },
         whatsapp: {
           managerPhone: DEFAULT_MANAGER_PHONE,
           link: managerWaLink,
@@ -663,30 +671,12 @@ async function handleRequest(req, res) {
     if (pathname === '/api/leads' && method === 'GET') {
       if (!requireCrmAuth(req, res, clientIp)) return;
       res.setHeader('Cache-Control', 'no-store');
-      const leads = await readLeads();
-
-      let filtered = [...leads];
-
-      if (query.status) {
-        filtered = filtered.filter(l => l.status === query.status);
-      }
-
-      if (query.city) {
-        const cityQ = query.city.toLowerCase();
-        filtered = filtered.filter(l => l.city && l.city.toLowerCase() === cityQ);
-      }
-
-      const limit = query.limit ? parseInt(query.limit, 10) : 100;
-      const offset = query.offset ? parseInt(query.offset, 10) : 0;
-      const paginated = filtered.slice(offset, offset + limit);
+      const result = await leadStore.list({ status: query.status, city: query.city, limit: query.limit, offset: query.offset });
 
       sendJSON(res, 200, {
         success: true,
-        total: leads.length,
-        filteredCount: filtered.length,
-        limit,
-        offset,
-        leads: paginated
+        storage: leadStore.mode(),
+        ...result
       });
       return;
     }
@@ -707,27 +697,19 @@ async function handleRequest(req, res) {
         return;
       }
 
-      const leads = await readLeads();
-      const leadIndex = leads.findIndex(l => l.id === leadId);
+      const updated = await leadStore.updateStatus(leadId, newStatus, body.comment ? String(body.comment).slice(0, 2000) : '');
 
-      if (leadIndex === -1) {
+      if (!updated) {
         sendError(res, 404, `Лид с ID "${leadId}" не найден`);
         return;
       }
 
-      leads[leadIndex].status = newStatus;
-      leads[leadIndex].updatedAt = new Date().toISOString();
-      if (body.comment) {
-        leads[leadIndex].managerNotes = String(body.comment);
-      }
-
-      await writeLeadsSafely(leads);
       console.log(`[Lead Status Updated] ID: ${leadId} -> ${newStatus}`);
 
       sendJSON(res, 200, {
         success: true,
         message: `Статус лида обновлен на "${newStatus}"`,
-        lead: leads[leadIndex]
+        lead: updated
       });
       return;
     }
@@ -825,7 +807,8 @@ if (require.main === module) {
     console.log(`[CRM] CRM Panel:   http://localhost:${PORT}/crm`);
     console.log(`[API] Health:      http://localhost:${PORT}/api/health`);
     console.log(`[API] Robots:      http://localhost:${PORT}/api/robots`);
-    console.log(`[DATA] Leads DB:   ${LEADS_FILE}`);
+    console.log(`[DATA] Leads DB:   ${leadStore.mode() === 'supabase' ? 'Supabase' : LEADS_FILE}`);
+    console.log(`[NOTIFY] Telegram: ${leadStore.telegram() ? 'включён' : 'не настроен'}`);
     if (!CRM_PASSWORD) {
       console.log('[AUTH] ВНИМАНИЕ: CRM_PASSWORD не задан — /crm и API заявок закрыты (503).');
     } else {
