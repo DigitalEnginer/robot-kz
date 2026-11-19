@@ -204,7 +204,7 @@ def test_suite_platform_files():
     html_content = INDEX_HTML_PATH.read_text(encoding="utf-8")
 
     # Check essential tags
-    essential_tags = ["<!DOCTYPE html>", "<html", "<head>", "<title>", "<body>", "<header", "<main", "<footer", "<dialog"]
+    essential_tags = ["<!DOCTYPE html>", "<html", "<head>", "<title>", "<body", "<header", "<main", "<footer", "<dialog"]
     missing_essentials = [t for t in essential_tags if t not in html_content]
     if not missing_essentials:
         record_result(suite, "HTML essential semantic tags presence", "PASS", "DOCTYPE, html, head, body, header, main, footer, dialog present")
@@ -541,92 +541,44 @@ def test_suite_layout_and_overlaps():
         cleaned_sel = sel.strip().split("\n")[-1].strip()
         z_map[cleaned_sel] = int(z_val)
 
-    # Key elements expected hierarchy
-    expected_order = [
-        ("floating-whatsapp", 90),
-        ("site-header", 100),
-        ("drawer-backdrop", 150),
-        ("cart-drawer", 160),
-        ("toast-container", 200)
-    ]
-
-    z_conflicts = []
-    for elem_name, expected_z in expected_order:
-        found = False
+    def z_of(name):
         for sel, val in z_map.items():
-            if elem_name in sel:
-                found = True
-                if val != expected_z:
-                    z_conflicts.append(f"{sel} has z-index {val}, expected {expected_z}")
-                break
-        if not found:
-            z_conflicts.append(f"Element matching '{elem_name}' not found with z-index")
+            if name in sel:
+                return val
+        return None
 
-    if not z_conflicts:
+    # Relative stacking order of the overlay layers (exact numbers are a design detail)
+    order = ["site-header", "drawer-backdrop", "cart-drawer", "toast-container"]
+    zs = [z_of(n) for n in order]
+    if all(z is not None for z in zs) and all(zs[i] < zs[i + 1] for i in range(len(zs) - 1)):
         record_result(suite, "CSS Stacking Context (z-index) hierarchy", "PASS",
-                      "WhatsApp(90) < Header(100) < Backdrop(150) < Drawer(160) < Toast(200)")
+                      " < ".join(f"{n}({z})" for n, z in zip(order, zs)))
     else:
-        record_result(suite, "CSS Stacking Context (z-index) hierarchy", "FAIL", f"Conflicts: {z_conflicts}")
+        record_result(suite, "CSS Stacking Context (z-index) hierarchy", "FAIL", f"Order broken: {dict(zip(order, zs))}")
 
-    # 2. Check backdrop covers WhatsApp button when drawer is opened
-    backdrop_z = None
-    wa_z = None
+    # Mobile menu: panel must sit above its own backdrop
+    nav_bd, nav = z_of("mobile-nav-backdrop"), None
     for sel, val in z_map.items():
-        if "drawer-backdrop" in sel:
-            backdrop_z = val
-        if "floating-whatsapp" in sel:
-            wa_z = val
-
-    if backdrop_z and wa_z and backdrop_z > wa_z:
-        record_result(suite, "Drawer overlay covers floating WhatsApp button", "PASS",
-                      f"Backdrop z-index ({backdrop_z}) > WhatsApp z-index ({wa_z})")
+        if "mobile-nav" in sel and "backdrop" not in sel and "links" not in sel:
+            nav = val
+            break
+    if nav_bd is not None and nav is not None and nav > nav_bd:
+        record_result(suite, "Mobile menu above its backdrop", "PASS", f"mobile-nav({nav}) > backdrop({nav_bd})")
     else:
-        record_result(suite, "Drawer overlay covers floating WhatsApp button", "FAIL",
-                      f"Backdrop ({backdrop_z}) not strictly greater than WhatsApp ({wa_z})")
+        record_result(suite, "Mobile menu above its backdrop", "FAIL", f"mobile-nav={nav}, backdrop={nav_bd}")
 
-    # 3. Check WhatsApp position coordinates and safe offsets
-    wa_rule = re.search(r'\.floating-whatsapp\s*\{([^}]+)\}', css_text)
-    toast_rule = re.search(r'\.toast-container\s*\{([^}]+)\}', css_text)
-
-    if wa_rule and toast_rule:
-        wa_body = wa_rule.group(1)
-        toast_body = toast_rule.group(1)
-
-        wa_is_left = "left:" in wa_body
-        toast_is_right = "right:" in toast_body
-
-        if wa_is_left and toast_is_right:
-            record_result(suite, "Spatial collision safety (WhatsApp Left vs Toast Right)", "PASS",
-                          "WhatsApp fixed bottom-left (24px), Toast fixed bottom-right (24px): no collision")
-        else:
-            record_result(suite, "Spatial collision safety (WhatsApp Left vs Toast Right)", "FAIL",
-                          f"WhatsApp left: {wa_is_left}, Toast right: {toast_is_right}")
+    # The floating WhatsApp button was removed in the redesign: make sure it does not come back half-styled
+    html_text = INDEX_HTML_PATH.read_text(encoding="utf-8") if INDEX_HTML_PATH.exists() else ""
+    if "floating-whatsapp" not in html_text:
+        record_result(suite, "No floating overlay button over content", "PASS", "floating WhatsApp button removed")
     else:
-        record_result(suite, "Spatial collision safety rules", "FAIL", "Rules not found in CSS")
+        record_result(suite, "No floating overlay button over content", "FAIL", "floating-whatsapp is back in index.html")
 
-    # 4. Check Mobile Responsive WhatsApp behavior (<= 768px)
-    media_idx = css_text.find('@media (max-width: 768px)')
-    has_mobile_wa = False
-    if media_idx != -1:
-        media_chunk = css_text[media_idx:media_idx+3000]
-        if ".floating-whatsapp span" in media_chunk and "display: none" in media_chunk:
-            has_mobile_wa = True
-
-    if has_mobile_wa:
-        record_result(suite, "Mobile viewport WhatsApp compactness (<= 768px)", "PASS",
-                      "Text hidden (.floating-whatsapp span { display: none }), transforms to compact round FAB")
+    # Dialog top layer & backdrop
+    if "::backdrop" in css_text and ("dialog" in css_text or "#productDialog" in css_text):
+        record_result(suite, "HTML5 Native Dialog top layer compliance", "PASS", "dialog styled with ::backdrop")
     else:
-        record_result(suite, "Mobile viewport WhatsApp compactness (<= 768px)", "FAIL",
-                      "Mobile rule for compact floating button missing")
-
-    # 5. Check Dialog top layer & backdrop isolation
-    dialog_backdrop = "dialog::backdrop" in css_text
-    dialog_modal = "dialog:modal" in css_text or "dialog" in css_text
-    if dialog_backdrop and dialog_modal:
-        record_result(suite, "HTML5 Native Dialog top layer compliance", "PASS",
-                      "dialog:modal and dialog::backdrop configured with backdrop-filter blur and containment")
-    else:
-        record_result(suite, "HTML5 Native Dialog top layer compliance", "FAIL", "dialog styles incomplete")
+        record_result(suite, "HTML5 Native Dialog top layer compliance", "FAIL", "dialog ::backdrop style missing")
 
 
 # ============================================================================

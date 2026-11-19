@@ -7,7 +7,7 @@ const SERIES_DATA = [
   // ---------- UNITREE ----------
   {
     id: "go2", name: "Unitree Go2", brand: "Unitree", cat: "quadruped",
-    tagline: "Самый продаваемый робот-собака в мире: 4D-лидар, GPT-ИИ, от базовой Air до исследовательской EDU",
+    tagline: "Робот-собака с 4D-лидаром и голосовым ИИ — от базовой Air до исследовательской EDU",
     models: ["go2-pro", "go2-air", "go2-x", "go2-edu", "go2-w"]
   },
   {
@@ -17,7 +17,7 @@ const SERIES_DATA = [
   },
   {
     id: "h2", name: "Unitree H2", brand: "Unitree", cat: "humanoid",
-    tagline: "Полноразмерные гуманоиды нового поколения ростом 180 см",
+    tagline: "Полноразмерные гуманоиды ростом 180 см",
     models: ["unitree-h2", "unitree-h2-plus", "unitree-h2-d"]
   },
   {
@@ -42,7 +42,7 @@ const SERIES_DATA = [
   },
   {
     id: "as2", name: "Unitree As2", brand: "Unitree", cat: "quadruped",
-    tagline: "Компактный квадропед нового поколения — шагающая и колёсная версии",
+    tagline: "Компактный квадропед — шагающая и колёсная версии",
     models: ["unitree-as2", "unitree-as2-w"]
   },
   { id: "dex3", name: "Unitree Dex3-1", brand: "Unitree", cat: "components", tagline: "", models: ["unitree-dex3-1"] },

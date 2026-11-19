@@ -90,6 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let currentSeriesId = null;
+  // Page mode: the catalog page has the category filter; the home page shows a short "popular" list
+  const IS_CATALOG_PAGE = Boolean(document.querySelector('#catalog .catalog-toolbar'));
+  const FEATURED_SERIES = ['go2', 'g1', 'h2', 'bellabot', 'cc1', 't-series'];
+  const catalogUrlForSeries = (id) => `catalog.html#series-${id}`;
   const seriesViewEl = document.getElementById('seriesView');
   const catalogToolbarEl = document.querySelector('#catalog .catalog-toolbar');
   const catalogHeaderEl = document.querySelector('#catalog .section-header');
@@ -99,12 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const CHEVRON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>`;
 
   function robotCardHTML(robot) {
-    const specsEntries = Object.entries(robot.specs || {}).slice(0, 4);
+    // Two meaningful specs per card; generic rows (brand, category, warranty) live in the modal only
+    const GENERIC_SPECS = ['Производитель', 'Категория', 'Гарантия', 'Сервисный центр'];
+    const specsEntries = Object.entries(robot.specs || {}).filter(([k]) => !GENERIC_SPECS.includes(k)).slice(0, 2);
     const configTag = robot.config_label ? `<div class="card-config-tag">${robot.config_label}</div>` : '';
     return `
       <article class="robot-card" data-slug="${robot.slug}" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Открыть характеристики ${robot.name}">
         <div class="robot-card-top">
-          <span class="card-badge">${robot.badge || 'Официальная поставка'}</span>
+          ${robot.badge ? `<span class="card-badge">${robot.badge}</span>` : '<span></span>'}
           <span class="card-brand">${robot.brand}</span>
         </div>
         <div class="robot-card-img-wrap">
@@ -112,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <h3 class="robot-card-name">${robot.name}</h3>
         <p class="robot-card-desc">${robot.desc || robot.full_desc || ''}</p>
-        <div class="specs-mini-grid">
+        <div class="specs-mini-grid"${specsEntries.length ? '' : ' hidden'}>
           ${specsEntries.map(([k, v]) => `
             <div class="spec-mini-item">
               <span class="spec-mini-lbl">${k}</span>
@@ -203,6 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (buyerStepsEl) buyerStepsEl.hidden = false;
 
     let list = SERIES.filter(s => seriesModels(s).length > 0);
+    if (!IS_CATALOG_PAGE) {
+      list = FEATURED_SERIES.map(id => SERIES.find(s => s.id === id)).filter(Boolean);
+    }
     if (currentCategory !== 'all') list = list.filter(s => s.cat === currentCategory);
     if (currentBrand !== 'all') list = list.filter(s => s.brand.toLowerCase() === currentBrand.toLowerCase());
 
@@ -235,6 +244,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openSeries(id) {
     if (!SERIES.some(s => s.id === id)) return;
+    if (!IS_CATALOG_PAGE) {
+      window.location.href = catalogUrlForSeries(id);
+      return;
+    }
     if (location.hash !== `#series-${id}`) {
       history.pushState({ series: id }, '', `#series-${id}`);
     }
@@ -253,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncSeriesFromUrl() {
+    if (!IS_CATALOG_PAGE) return;
     const m = location.hash.match(/^#series-([a-z0-9-]+)$/i);
     const id = m && SERIES.some(s => s.id === m[1]) ? m[1] : null;
     if (id === currentSeriesId) return;
@@ -286,8 +300,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Filter events
   categoryPills.forEach(pill => {
     pill.addEventListener('click', () => {
-      categoryPills.forEach(p => p.classList.remove('active'));
+      categoryPills.forEach(p => { p.classList.remove('active'); p.setAttribute('aria-pressed', 'false'); });
       pill.classList.add('active');
+      pill.setAttribute('aria-pressed', 'true');
+      if (history.replaceState) {
+        const u = new URL(window.location.href);
+        if (pill.dataset.category === 'all') u.searchParams.delete('cat'); else u.searchParams.set('cat', pill.dataset.category);
+        u.hash = '';
+        history.replaceState(null, '', u.pathname + u.search);
+      }
       currentCategory = pill.dataset.category;
       closeSeries();
       renderCatalog();
@@ -430,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="modal-inner">
           <div class="modal-header">
             <div class="modal-header-title-wrap">
-              <span class="card-badge">${robot.badge || 'Официальная поставка'}</span>
+              ${robot.badge ? `<span class="card-badge">${robot.badge}</span>` : ''}
               <h3 id="productDialogTitle">${robot.name}</h3>
             </div>
             <button type="button" class="modal-close-btn" id="closeModalBtn" aria-label="Закрыть окно" autofocus>
@@ -462,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="font-size: 0.78rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
                   <div style="display: flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>В наличии в Алматы / Доставка 1–3 дня по всему Казахстану</span>
+                    <span>Поставка по всему Казахстану — сроки и наличие уточняем в КП</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-mint)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -751,6 +772,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function goToQuoteForm() {
     if (cartDrawer?.classList.contains('open')) closeDrawer();
+    if (!document.getElementById('leadForm')) {
+      window.location.href = 'index.html#contact';
+      return;
+    }
     showLeadForm();
     renderQuoteSelection();
     const contact = document.getElementById('contact');
@@ -844,7 +869,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Close menu & smooth scroll when link is clicked + Scrollspy + Stuck header state
-  const navSectionLinks = document.querySelectorAll('.nav-links a, .mobile-nav-links a');
+  const IS_HOME_PAGE = /(^\/$|\/index\.html$)/.test(window.location.pathname);
+  const sameDocHash = (href) => {
+    if (!href) return null;
+    if (href.startsWith('#')) return href;
+    const m = href.match(/^(?:\.\/)?index\.html(#.+)$/);
+    return (m && IS_HOME_PAGE) ? m[1] : null;
+  };
+  const navSectionLinks = [...document.querySelectorAll('.nav-links a, .mobile-nav-links a')].filter(a => (a.getAttribute('href') || '').includes('#'));
   const supportsScrollTargetGroup = typeof CSS !== 'undefined' && CSS.supports && CSS.supports('scroll-target-group: auto');
 
   function setManualActiveNav(href) {
@@ -860,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
   allNavLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       closeMobileMenu();
-      const href = link.getAttribute('href');
+      const href = sameDocHash(link.getAttribute('href')) || link.getAttribute('href');
       if (href === '#') {
         e.preventDefault();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -916,8 +948,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', scheduleSync, { passive: true });
     menuToggle?.addEventListener('click', syncAriaCurrent);
   } else {
-    const sectionTargets = Array.from(document.querySelectorAll('#mainNav a[href^="#"]'))
-      .map(link => document.querySelector(link.getAttribute('href')))
+    const sectionTargets = Array.from(document.querySelectorAll('#mainNav a'))
+      .map(link => sameDocHash(link.getAttribute('href')))
+      .filter(Boolean)
+      .map(h => document.querySelector(h))
       .filter(Boolean);
 
     if (sectionTargets.length > 0 && 'IntersectionObserver' in window) {
@@ -982,348 +1016,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // === 5. ENGINEERING CONFIGURATOR (DYNAMIC LOGIC) ===
-  let cfgState = {
-    sphere: 'cleaning',
-    scale: 'small',
-    features: ['narrow']
-  };
-
-  const scaleOptions = {
-    cleaning: [
-      { id: 'small', label: '100 – 800 м² (компактный)' },
-      { id: 'medium', label: '800 – 5 000 м² (средний)' },
-      { id: 'large', label: 'более 5 000 м² (крупный флот)' }
-    ],
-    horeca: [
-      { id: 'small', label: 'до 200 м² (кафе / кофейня)' },
-      { id: 'medium', label: '200 – 1 000 м² (ресторан)' },
-      { id: 'large', label: 'Отель / мультиэтажный комплекс' }
-    ],
-    amr: [
-      { id: 'small', label: 'до 20 кг (детали / лотки)' },
-      { id: 'medium', label: 'до 300 кг (T300 конвейер / тележки)' },
-      { id: 'large', label: 'до 600 кг (T600 / Lifting Rack)' }
-    ],
-    rnd: [
-      { id: 'small', label: 'Базовый SDK (Go2 EDU / Python)' },
-      { id: 'medium', label: 'Промышленный IP67 (Unitree B2 / D5)' },
-      { id: 'large', label: 'Гуманоидный комплекс (Unitree G1 / R1)' }
-    ],
-    event: [
-      { id: 'small', label: 'Робособака (трюки / фотозона)' },
-      { id: 'medium', label: '18.5" Промо-экран (KettyBot Pro)' },
-      { id: 'large', label: 'Спортивный гуманоид (Unitree R1)' }
-    ]
-  };
-
-    const sphereRecommendations = {
-    'cleaning-small': {
-      name: 'PUDU ET1 (Компактный поломой)',
-      desc: 'Идеален для площадей 100–800 м². Горячая мойка 85°C и автоматическая рабочая станция 8-в-1 для автономного слива, сушки и дезинфекции.',
-      image: 'assets/cards/pudu-et1-official.webp',
-      slug: 'pudu-et1',
-      spec1: 'до 800 м²/ч',
-      spec2: 'Горячая мойка 85°C',
-      spec3: 'Док-станция 8-в-1 • автослив и залив'
-    },
-    'cleaning-medium': {
-      name: 'PUDU CC1 Pro (Клининговый комбайн 4-в-1)',
-      desc: 'Флагман для торговых и бизнес-центров до 5 000 м². Одновременное мытье, подметание, скраббер и сушка пола.',
-      image: 'assets/cards/ph-pudu-cc1-1.webp',
-      slug: 'pudu-cc1',
-      spec1: '1 000 м²/ч',
-      spec2: 'Уборка 4-в-1 (мытьё, сушка, скраббер)',
-      spec3: 'до 12 000 м²/день флотом'
-    },
-    'cleaning-large': {
-      name: 'PUDU CC1 Pro + PUDU BG1',
-      desc: 'Комплексный клининговый флот для логистических терминалов и мега-моллов свыше 5 000 м² с единой системой координации.',
-      image: 'assets/cards/ph-pudu-cc1-1.webp',
-      slug: 'pudu-cc1',
-      spec1: 'до 12 000 м²/день',
-      spec2: 'Централизованная координация флота',
-      spec3: 'Автономная рабочая станция'
-    },
-    'horeca-small': {
-      name: 'PuduBot 2 (с защитным кейсом)',
-      desc: 'Компактная доставка до 400 заказов в день. Закрытый гигиеничный кейс Protection Case с магнитными створками.',
-      image: 'assets/cards/ph-pudu-pudubot-2-1.webp',
-      slug: 'pudu-pudubot-2',
-      spec1: 'до 400 заказов/день',
-      spec2: 'Заменяет до 5 официантов',
-      spec3: 'До 20 кг • до 6 ч работы'
-    },
-    'horeca-medium': {
-      name: 'PUDU BellaBot Pro',
-      desc: 'Премиальный робот-официант с мимикой, мультимодальным голосовым диалогом и 4 уровнями подносов с подсветкой.',
-      image: 'assets/cards/pudu-bellabot-official.webp',
-      slug: 'pudu-bellabot',
-      spec1: 'до 400 заказов/день',
-      spec2: '4 независимых лотка с подсветкой',
-      spec3: 'до 40 кг • до 24 ч работы'
-    },
-    'horeca-large': {
-      name: 'PUDU FlashBot Max (Межэтажная доставка)',
-      desc: 'Автономная интеграция с лифтовыми контроллерами и системами отелей для круглосуточного рум-сервиса без персонала.',
-      image: 'assets/cards/ph-pudu-flashbot-max-1.webp',
-      slug: 'pudu-flashbot-max',
-      spec1: 'Интеграция с лифтовыми контроллерами',
-      spec2: 'Автономный рум-сервис 24/7',
-      spec3: 'Закрытый бокс 30 л • до 12 ч'
-    },
-    'amr-small': {
-      name: 'PUDU T300 AMR (Многоярусный лоток Tray)',
-      desc: 'Автономная тележка для межоперационной доставки коробов и компонентов в цехах с узкими проходами от 80 см.',
-      image: 'assets/cards/ph-pudu-t300-1.webp',
-      slug: 'pudu-t300',
-      spec1: 'Узкие проходы от 80 см',
-      spec2: 'Многоярусный лоток Tray',
-      spec3: 'до 100 кг на ярус • точность ±10 мм'
-    },
-    'amr-medium': {
-      name: 'PUDU T300 AMR (Роликовый конвейер)',
-      desc: 'Автоматическая стыковка с производственными конвейерами (±10 мм) для бесперебойного перемещения тары.',
-      image: 'assets/cards/ph-pudu-t300-1.webp',
-      slug: 'pudu-t300',
-      spec1: 'Автоматическая стыковка с конвейером',
-      spec2: 'Интеграция с заводской WMS/ERP',
-      spec3: 'Грузоподъёмность 300 кг'
-    },
-    'amr-large': {
-      name: 'PUDU T300 / T600 (Подъемная стойка Lifting Rack)',
-      desc: 'Тяжелый тягач с ножничным или серво-подъемником для паллет до 600 кг внутри заводских складов.',
-      image: 'assets/cards/ph-pudu-t300-1.webp',
-      slug: 'pudu-t300',
-      spec1: 'Подъёмная стойка Lifting Rack',
-      spec2: 'Транспортировка паллет до 600 кг',
-      spec3: 'Грузоподъёмность 300/600 кг'
-    },
-    'rnd-small': {
-      name: 'Unitree Go2 EDU (Открытая платформа ROS2)',
-      desc: 'Полный доступ к ROS2, Python и C++ API, чтение токов моторов и 4D LiDAR для лабораторий и ВУЗов Казахстана.',
-      image: 'assets/cards/ph-go2-pro-1.webp',
-      slug: 'go2-pro',
-      spec1: 'Скорость до 3.7 м/с',
-      spec2: 'Открытый стек ROS2 / Python / C++',
-      spec3: '4D-LiDAR 360°x90° • нагрузка до 8-10 кг'
-    },
-    'rnd-medium': {
-      name: 'Unitree B2 / PUDU D5 (Промышленный класс IP67)',
-      desc: 'Работа при -20°C...+55°C, защита IP67, автономность до 5 часов и преодоление уклонов до 45° для патрулирования промзон.',
-      image: 'assets/cards/u-b2.webp',
-      slug: 'unitree-b2',
-      spec1: 'Патруль промзон IP67 (уклоны 45°)',
-      spec2: 'Работа от -20°C до +55°C',
-      spec3: 'Нагрузка 40–50 кг • до 5 ч работы'
-    },
-    'rnd-large': {
-      name: 'Unitree G1 Humanoid (Робот-гуманоид 43 DoF)',
-      desc: 'Антропоморфная платформа ростом 127 см с манипуляторами Dex3-1, GPT-интеллектом и передовой динамической стабилизацией.',
-      image: 'assets/cards/u-g1.webp',
-      slug: 'unitree-g1',
-      spec1: 'Рост 127 см / вес 35 кг',
-      spec2: 'до 43 степеней свободы',
-      spec3: 'Манипуляторы Dex3-1 • GPT диалог'
-    },
-    'event-small': {
-      name: 'Unitree Go2 Pro (Шоу и фотозона)',
-      desc: 'Синхронные сальто, танцы, интерактивный голосовой диалог с гостями и максимальное внимание прессы на выставках.',
-      image: 'assets/cards/ph-go2-pro-1.webp',
-      slug: 'go2-pro',
-      spec1: 'Скорость до 3.7 м/с',
-      spec2: 'Интерактивное шоу, сальто и трюки',
-      spec3: 'Аренда с сертифицированным оператором'
-    },
-    'event-medium': {
-      name: 'PUDU KettyBot Pro (18.5" HD Промо-экран)',
-      desc: 'Робот-промоутер для трансляции ваших видеороликов, навигации по стенду форума и раздачи welcome-дринков.',
-      image: 'assets/cards/ph-pudu-kettybot-pro-1.webp',
-      slug: 'pudu-kettybot-pro',
-      spec1: '18.5" вертикальный рекламный HD-экран',
-      spec2: 'Круизный обход и лидогенерация',
-      spec3: 'Поднос для напитков • до 8 ч'
-    },
-    'event-large': {
-      name: 'Unitree R1 (Спортивный гуманоид)',
-      desc: 'Сверхлегкий атлетичный гуманоид весом 25–29 кг с 20–26 степенями свободы для акробатики, бега и WOW-презентаций.',
-      image: 'assets/cards/u-r1.webp',
-      slug: 'unitree-r1',
-      spec1: 'Спортивная динамика до 3.3 м/с',
-      spec2: 'Акробатика, сальто и бег (20–26 DoF)',
-      spec3: 'Сверхлегкий вес 25–29 кг'
-    }
-  };
-
-    function updateConfiguratorRecommendation() {
-    const key = `${cfgState.sphere}-${cfgState.scale}`;
-    const rec = sphereRecommendations[key] || sphereRecommendations[`${cfgState.sphere}-small`] || sphereRecommendations['cleaning-small'];
-
-    // Dynamic catalog lookup for 100% working image & fallback
-    const robotMatch = (typeof ROBOTS_DATA !== 'undefined' ? ROBOTS_DATA : []).find(r => r.slug === rec.slug);
-    const finalImage = (robotMatch && robotMatch.image) ? robotMatch.image : rec.image;
-
-    const titleEl = document.getElementById('cfgResultTitle');
-    const descEl = document.getElementById('cfgResultDesc');
-    const imgEl = document.getElementById('cfgResultImg');
-    const spec1El = document.getElementById('cfgResultSpec1');
-    const spec2El = document.getElementById('cfgResultSpec2');
-    const spec3El = document.getElementById('cfgResultSpec3');
-    const waBtn = document.getElementById('cfgWhatsAppBtn');
-    const addBtn = document.getElementById('cfgAddSpecBtn');
-
-    if (titleEl) titleEl.textContent = rec.name;
-    if (descEl) descEl.textContent = rec.desc;
-    if (imgEl) {
-      imgEl.src = finalImage;
-      imgEl.alt = rec.name;
-    }
-    if (spec1El) spec1El.textContent = rec.spec1;
-    if (spec2El) spec2El.textContent = rec.spec2;
-    if (spec3El) spec3El.textContent = rec.spec3;
-
-    if (waBtn) {
-      const msg = `Здравствуйте, ${CFG.brandName}! Я подобрал решение в инженерном конфигураторе на сайте:\n• Рекомендация: ${rec.name}\n• Сфера: ${cfgState.sphere}\n• Масштаб/нагрузка: ${cfgState.scale}\n• Особенности: ${cfgState.features.join(', ')}\n\nПрошу отправить технико-экономическое обоснование (ТЭО) и официальное КП с НДС 12%.`;
-      waBtn.href = `https://wa.me/${CFG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
-    }
-
-    if (addBtn) {
-      addBtn.onclick = () => {
-        addToCart(rec.slug);
-      };
-    }
-  }
-
-  function renderScaleOptions() {
-    const scaleGroup = document.getElementById('cfgScaleGroup');
-    if (!scaleGroup) return;
-
-    const opts = scaleOptions[cfgState.sphere] || scaleOptions.cleaning;
-    scaleGroup.innerHTML = opts.map((opt, i) => `
-      <button type="button" class="cfg-tag-btn ${opt.id === cfgState.scale ? 'active' : ''}" data-scale="${opt.id}">
-        ${opt.label}
-      </button>
-    `).join('');
-
-    scaleGroup.querySelectorAll('.cfg-tag-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        scaleGroup.querySelectorAll('.cfg-tag-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        cfgState.scale = btn.dataset.scale;
-        updateConfiguratorRecommendation();
-      });
-    });
-  }
-
-  // Step 1: Sphere Click
-  document.querySelectorAll('#cfgSphereGroup .cfg-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#cfgSphereGroup .cfg-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      cfgState.sphere = btn.dataset.sphere;
-      cfgState.scale = 'small'; // reset to first
-      renderScaleOptions();
-      updateConfiguratorRecommendation();
-    });
-  });
-
-  // Step 3: Features Click (multi-select)
-  document.querySelectorAll('#cfgFeatureGroup .cfg-feat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('active');
-      const feat = btn.dataset.feature;
-      if (btn.classList.contains('active')) {
-        if (!cfgState.features.includes(feat)) cfgState.features.push(feat);
-      } else {
-        cfgState.features = cfgState.features.filter(f => f !== feat);
-      }
-      updateConfiguratorRecommendation();
-    });
-  });
-
-  // Initial configurator setup
-  renderScaleOptions();
-  updateConfiguratorRecommendation();
-
-  // === 6. HERO VISUAL TABS SWITCHER (AUTHENTIC B2B STATUS) ===
-    const heroRobots = [
-    {
-      name: 'Unitree Go2 Pro',
-      badge: 'Хит продаж в Казахстане',
-      desc: 'Четвероногий робот с 4D-лидаром, GPT-интеллектом и максимальной проходимостью',
-      price: 'По запросу',
-      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
-      img: 'assets/cards/ph-go2-pro-1.webp',
-      slug: 'go2-pro'
-    },
-    {
-      name: 'Unitree G1 Humanoid',
-      badge: 'Новинка 2026',
-      desc: 'Антропоморфный робот-гуманоид массового производства, до 43 степеней свободы',
-      price: 'По запросу',
-      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
-      img: 'assets/cards/u-g1.webp',
-      slug: 'unitree-g1'
-    },
-    {
-      name: 'PUDU CC1 Pro',
-      badge: 'В наличии в Алматы',
-      desc: 'Автономный клининговый комбайн 4-в-1 для торговых центров и складов до 12 000 м²',
-      price: 'По запросу',
-      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
-      img: 'assets/cards/ph-pudu-cc1-1.webp',
-      slug: 'pudu-cc1'
-    },
-    {
-      name: 'PUDU T300 AMR',
-      badge: 'Для цехов и заводов',
-      desc: 'Промышленная автономная платформа 300 кг для сопряжения с конвейерами цеха',
-      price: 'По запросу',
-      lease: 'Расчёт КП за 15 минут • Лизинг для юрлиц РК',
-      img: 'assets/cards/ph-pudu-t300-1.webp',
-      slug: 'pudu-t300'
-    }
-  ];
-
-  const heroCardName = document.getElementById('heroCardName');
-  const heroCardBadge = document.getElementById('heroCardBadge');
-  const heroCardDesc = document.getElementById('heroCardDesc');
-  const heroCardPrice = document.getElementById('heroCardPrice');
-  const heroCardLease = document.getElementById('heroCardLease');
-  const heroCardImg = document.getElementById('heroCardImg');
-  const heroCardDetailsBtn = document.getElementById('heroCardDetailsBtn');
-  const heroTabBtns = document.querySelectorAll('.hero-tab-btn');
-
-  heroTabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      heroTabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const idx = parseInt(btn.dataset.idx || '0');
-      const r = heroRobots[idx];
-      if (r) {
-        if (heroCardName) heroCardName.textContent = r.name;
-        if (heroCardBadge) heroCardBadge.textContent = r.badge;
-        if (heroCardDesc) heroCardDesc.textContent = r.desc;
-        if (heroCardPrice) heroCardPrice.textContent = r.price;
-        if (heroCardLease) heroCardLease.textContent = r.lease;
-        if (heroCardImg) {
-          heroCardImg.style.opacity = '0';
-          setTimeout(() => {
-            heroCardImg.src = r.img;
-            heroCardImg.style.opacity = '1';
-          }, 150);
-        }
-        if (heroCardDetailsBtn) {
-          heroCardDetailsBtn.onclick = (e) => openProductModal(r.slug, e.currentTarget);
-        }
-      }
-    });
-  });
-
-  if (heroCardDetailsBtn) {
-    heroCardDetailsBtn.onclick = (e) => openProductModal('go2-pro', e.currentTarget);
-  }
-
   // === 7. LEAD FORM SUBMISSION → SUCCESS SCREEN ===
   const leadForm = document.getElementById('leadForm');
   const leadSuccess = document.getElementById('leadSuccess');
@@ -1367,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
     leadSuccess.querySelector('h3')?.focus({ preventScroll: true });
     leadSuccess.querySelector('[data-action="back-to-catalog"]')?.addEventListener('click', () => {
       showLeadForm();
-      scrollToCatalogTop();
+      window.location.href = 'catalog.html';
     });
   }
 
@@ -1482,7 +1174,32 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', updateSearchPlaceholder);
 
   updateCartBadges();
+  if (IS_CATALOG_PAGE) {
+    const catParam = new URLSearchParams(window.location.search).get('cat');
+    if (catParam && [...categoryPills].some(p => p.dataset.category === catParam)) {
+      currentCategory = catParam;
+      categoryPills.forEach(p => {
+        const on = p.dataset.category === catParam;
+        p.classList.toggle('active', on);
+        p.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+  }
   renderCatalog();
   renderQuoteSelection();
   syncSeriesFromUrl();
+
+  // Arriving from another page with #contact / #about etc.: the browser jumps before the
+  // JS-rendered blocks are in place, so align to the target once the layout has settled.
+  const initialTarget = location.hash && !location.hash.startsWith('#series-') ? document.querySelector(location.hash) : null;
+  if (initialTarget) {
+    const alignToTarget = () => {
+      const header = document.querySelector('.site-header');
+      const offset = header ? header.getBoundingClientRect().height + 12 : 80;
+      const el = location.hash === '#contact' ? (document.querySelector('#contact .form-card') || initialTarget) : initialTarget;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: 'instant' });
+    };
+    requestAnimationFrame(alignToTarget);
+    [300, 900].forEach(ms => setTimeout(alignToTarget, ms));
+  }
 });

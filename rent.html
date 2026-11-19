@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Аренда роботов на мероприятия в Казахстане — ORDA ROBOTICS</title>
+  <meta name="description" content="Аренда роботов Unitree и PUDU на форумы, выставки, конференции и презентации в Алматы и по Казахстану. Сопровождение инженера, настройка сценариев и брендирование." />
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Аренда роботов на мероприятия в Казахстане — ORDA ROBOTICS" />
+  <meta property="og:description" content="Интерактивные роботы Unitree и PUDU для выставок, форумов и презентаций. Инженерное сопровождение, настройка сценариев и брендирование." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/cards/ph-go2-pro-1.webp" />
+
+  <!-- Google Fonts: Golos Text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="config/site.js?v=4.0"></script>
+  <link rel="stylesheet" href="css/style.css?v=4.0" />
+</head>
+<body class="page-rent">
+
+  <!-- SITE HEADER -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-logo" aria-label="ORDA ROBOTICS Главная">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">ORDA ROBOTICS</span>
+      </a>
+
+      <nav class="nav-links" id="mainNav" aria-label="Основное меню">
+        <a href="catalog.html">Каталог</a>
+        <a href="rent.html" class="active" aria-current="page">Аренда</a>
+        <a href="index.html#about">О компании</a>
+        <a href="index.html#contact">Контакты</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="tel:+77000000000" class="phone-link" aria-label="Позвонить в отдел продаж">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <span>+7 (700) 000-00-00</span>
+        </a>
+
+        <button class="cart-trigger" aria-label="Подборка для КП" title="Подборка для коммерческого предложения">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+            <path d="M3 6h18"></path>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span class="cart-count">0</span>
+        </button>
+
+        <a href="index.html#contact" class="btn-primary header-cta-btn">Получить КП</a>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Открыть мобильное меню" aria-expanded="false" aria-controls="mobileNav">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Overlay & Drawer -->
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+  <div class="mobile-nav" id="mobileNav" aria-label="Мобильное меню" aria-hidden="true">
+    <div class="mobile-nav-header">
+      <a href="index.html" class="brand-logo">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">ORDA ROBOTICS</span>
+      </a>
+      <button class="modal-close-btn" id="closeMobileNav" aria-label="Закрыть меню">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="mobile-nav-links">
+      <a href="catalog.html">Каталог</a>
+      <a href="rent.html" class="active" aria-current="page">Аренда</a>
+      <a href="index.html#about">О компании</a>
+      <a href="index.html#contact">Контакты</a>
+    </nav>
+
+    <div class="mobile-nav-footer">
+      <a href="tel:+77000000000" class="phone-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        <span>+7 (700) 000-00-00</span>
+      </a>
+      <a href="index.html#contact" class="btn-primary mobile-cta-btn">Получить КП</a>
+    </div>
+  </div>
+
+  <main>
+    <section class="rent-page-section" id="rent">
+      <div class="container">
+        <div class="section-header">
+          <h1 class="section-title">Аренда роботов на мероприятия в Казахстане</h1>
+          <p class="section-desc">
+            Интерактивные роботы Unitree и PUDU для форумов, выставок, конференций, презентаций и корпоративов.
+          </p>
+        </div>
+
+        <div class="rent-grid">
+          <!-- Card 1: Unitree Go2 Pro -->
+          <div class="rent-card">
+            <div class="rent-img-wrap">
+              <img src="assets/cards/ph-go2-pro-1.webp" alt="Unitree Go2 Pro" loading="lazy" />
+            </div>
+            <div class="rent-card-body">
+              <div class="rent-title-row">
+                <h3>Unitree Go2 Pro</h3>
+                <span class="card-badge">От 1 смены</span>
+              </div>
+              <p class="rent-card-desc">Интерактивное шоу, сальто, трюки и фотозона для гостей мероприятий.</p>
+              <ul class="rent-features">
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Доставка по Алматы, Астане и регионам Казахстана</span>
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Сертифицированный инженер-оператор на площадке</span>
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Брендирование корпуса под ваш логотип</span>
+                </li>
+              </ul>
+              <div class="rent-card-bottom">
+                <div class="price-block">
+                  <div class="price-val">По запросу</div>
+                  <div class="price-lease">Доставка и оператор включены</div>
+                </div>
+                <a href="index.html#contact" class="btn-primary">Забронировать</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: PUDU KettyBot Pro -->
+          <div class="rent-card">
+            <div class="rent-img-wrap">
+              <img src="assets/cards/ph-pudu-kettybot-pro-1.webp" alt="PUDU KettyBot Pro" loading="lazy" />
+            </div>
+            <div class="rent-card-body">
+              <div class="rent-title-row">
+                <h3>PUDU KettyBot Pro</h3>
+                <span class="card-badge">От 1 смены</span>
+              </div>
+              <p class="rent-card-desc">Робот-промоутер с 18.5" HD-экраном: трансляция промо-роликов, навигация и велкам-дринки.</p>
+              <ul class="rent-features">
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Загрузка и трансляция ваших рекламных видео</span>
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Автономный обход зала и встреча гостей</span>
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>До 8 часов непрерывной автономной работы</span>
+                </li>
+              </ul>
+              <div class="rent-card-bottom">
+                <div class="price-block">
+                  <div class="price-val">По запросу</div>
+                  <div class="price-lease">18.5" экран и настройка видео</div>
+                </div>
+                <a href="index.html#contact" class="btn-primary">Забронировать</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: PUDU BellaBot Pro -->
+          <div class="rent-card">
+            <div class="rent-img-wrap">
+              <img src="assets/cards/pudu-bellabot-official.webp" alt="PUDU BellaBot Pro" loading="lazy" />
+            </div>
+            <div class="rent-card-body">
+              <div class="rent-title-row">
+                <h3>PUDU BellaBot Pro</h3>
+                <span class="card-badge">От 1 смены</span>
+              </div>
+              <p class="rent-card-desc">Подача бокалов, закусок и мерча на презентациях, банкетах и фуршетах.</p>
+              <ul class="rent-features">
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>4 уровня лотков с подсветкой под напитки и сувениры</span>
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Интерактивная мимика и реагирование на прикосновения</span>
+                </li>
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Безопасная навигация в плотном потоке гостей</span>
+                </li>
+              </ul>
+              <div class="rent-card-bottom">
+                <div class="price-block">
+                  <div class="price-val">По запросу</div>
+                  <div class="price-lease">Настройка маршрутов и оператор</div>
+                </div>
+                <a href="index.html#contact" class="btn-primary">Забронировать</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Условия аренды -->
+        <div class="rent-conditions-box">
+          <h2 class="section-title">Что входит в стоимость аренды</h2>
+          <div class="conditions-grid">
+            <div class="condition-item">
+              <div class="condition-num">1</div>
+              <div class="condition-text">
+                <h4>Доставка и подготовка</h4>
+                <p>Привозим роботов на локацию, строим цифровую карту помещения и настраиваем маршруты движения перед началом события.</p>
+              </div>
+            </div>
+            <div class="condition-item">
+              <div class="condition-num">2</div>
+              <div class="condition-text">
+                <h4>Инженерное сопровождение</h4>
+                <p>Сертифицированный технический специалист находится на площадке и контролирует работу техники на протяжении всего времени аренды.</p>
+              </div>
+            </div>
+            <div class="condition-item">
+              <div class="condition-num">3</div>
+              <div class="condition-text">
+                <h4>Индивидуальный сценарий</h4>
+                <p>Программируем сценарии взаимодействия, загружаем ваши рекламные ролики, логотип компании или настраиваем трюки робособаки.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="catalog-cta-box">
+          <div class="catalog-cta-content">
+            <h3>Нужен расчет под ваше мероприятие?</h3>
+            <p>Сообщите дату, город и формат события — мы подготовим предложение с учетом логистики и тайминга.</p>
+          </div>
+          <a href="index.html#contact" class="btn-primary">Оставить заявку</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <a href="index.html" class="brand-logo">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-name">ORDA ROBOTICS</span>
+          </a>
+          <p>Официальный поставщик и сервисный центр робототехники Unitree и PUDU в Республике Казахстан.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Разделы</h4>
+          <ul>
+            <li><a href="catalog.html">Каталог роботов</a></li>
+            <li><a href="rent.html">Аренда на мероприятия</a></li>
+            <li><a href="index.html#about">О компании и сервисе</a></li>
+            <li><a href="index.html#contact">Контакты и заявка</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Контакты</h4>
+          <ul>
+            <li><a href="tel:+77000000000">+7 (700) 000-00-00</a></li>
+            <li><a href="mailto:sales@orda-robotics.kz">sales@orda-robotics.kz</a></li>
+            <li>г. Алматы</li>
+            <li>Пн–Пт: 09:00 – 19:00</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 ТОО «ORDA ROBOTICS»</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- NATIVE MODAL DIALOG -->
+  <dialog id="productDialog" closedby="any" aria-labelledby="productDialogTitle">
+    <div id="dialogContent"></div>
+  </dialog>
+
+  <!-- CART / QUOTE DRAWER -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Коммерческое предложение">
+    <div class="drawer-header">
+      <div>
+        <h3>Подборка для КП</h3>
+        <p>Официальный расчет спецификации с НДС 12% и доставкой по Казахстану</p>
+      </div>
+      <button class="modal-close-btn" id="closeDrawerBtn" aria-label="Закрыть панель">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-items" id="drawerItems"></div>
+
+    <div class="drawer-footer">
+      <div class="drawer-total">
+        <span>Всего позиций в запросе:</span>
+        <span id="drawerTotalUnits">0 ед.</span>
+      </div>
+      <button class="btn-primary" id="drawerQuoteBtn" type="button">Оформить запрос КП</button>
+      <button class="btn-secondary" id="sendCartWhatsAppBtn" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.983.541 1.836.828 2.801.829l.005-.001c3.182 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.765-5.778-5.765zm9.969 5.768c0 5.518-4.482 10-10 10-1.705 0-3.32-.435-4.735-1.196l-5.265 1.381 1.405-5.132c-.859-1.488-1.355-3.218-1.355-5.053 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/>
+        </svg>
+        <span>Отправить подборку в WhatsApp</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- SCRIPTS -->
+  <script src="js/robots-data.js?v=4.0"></script>
+  <script src="js/series-data.js?v=4.0"></script>
+  <script src="js/app.js?v=4.0"></script>
+</body>
+</html>
